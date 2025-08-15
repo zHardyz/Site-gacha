@@ -1,0 +1,490 @@
+/* Base Styles */
+
+:root {
+    --primary: #a33bff;
+    --secondary: #00e5ff;
+    --accent: #ff3b9d;
+    --background: #0a0a14;
+    --card-bg: #1a1a2e;
+    --text-primary: #f0f0f0;
+    --text-secondary: #a0a0c0;
+    --card-width: 280px;
+    --card-height: 400px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif; /* Modern font */
+    background-color: var(--background);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    background-image: radial-gradient(circle at top right, rgba(163, 59, 255, 0.2), transparent 40%),
+                      radial-gradient(circle at bottom left, rgba(0, 229, 255, 0.2), transparent 40%);
+    min-height: 100vh;
+}
+
+header {
+    padding: 1rem 2rem;
+    background-color: rgba(10, 10, 20, 0.5);
+    backdrop-filter: blur(10px);
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+nav a {
+    color: var(--text-primary);
+    text-decoration: none;
+    margin: 0 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 500;
+    transition: color 0.3s, text-shadow 0.3s;
+}
+
+nav a:hover {
+    color: var(--secondary);
+    text-shadow: 0 0 10px var(--secondary);
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 80px);
+    padding: 1rem;
+}
+
+/* Summon Page */
+#summon-page {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.summon-content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    max-width: 1600px;
+    padding: 2rem;
+    gap: 2rem;
+}
+
+.summon-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    flex-grow: 1;
+}
+
+#carousel-container {
+    perspective: 2000px;
+    width: var(--card-width);
+    height: var(--card-height);
+    position: relative;
+}
+
+.carousel {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.carousel-card {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--card-bg);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+}
+
+.carousel-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.particle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    pointer-events: none;
+}
+
+#summon-button {
+    margin-top: 2rem;
+    padding: 1rem 3rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    background: linear-gradient(45deg, var(--primary), var(--accent));
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.3s;
+    box-shadow: 0 0 25px rgba(163, 59, 255, 0.6);
+}
+
+#summon-button:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 0 40px rgba(163, 59, 255, 0.9);
+}
+
+#summon-button:disabled {
+    background: #555;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 300px;
+    flex-shrink: 0;
+}
+
+.anime-icon {
+    width: 100px;
+    height: auto;
+    align-self: center;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 10px var(--secondary));
+    transition: transform 0.3s ease;
+}
+
+.anime-icon:hover {
+    transform: scale(1.1);
+}
+
+#spin-container, #rarity-chances {
+    background-color: rgba(26, 26, 46, 0.7);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+#spins-left, #countdown-timer {
+    color: white;
+    font-size: 1.2em;
+    font-weight: 500;
+    text-align: center;
+}
+
+#rarity-chances ul {
+    list-style: none;
+}
+
+#rarity-chances li {
+    margin-bottom: 0.8rem;
+    font-weight: 500;
+}
+
+/* Stock Page */
+#stock-page h1 {
+    margin-bottom: 1rem;
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-shadow: 0 0 15px var(--secondary);
+}
+
+.stock-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1400px;
+    padding: 0 1rem 2rem 1rem;
+    gap: 1rem;
+}
+
+.search-bar input {
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--primary);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+    width: 300px;
+}
+
+.filter-sort {
+    display: flex;
+    gap: 1rem;
+}
+
+.filter-sort select {
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--primary);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+#stock-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    width: 100%;
+    max-width: 1400px;
+    padding: 1rem;
+}
+
+.stock-card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid transparent;
+}
+
+.card-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-image-container {
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+}
+
+.card-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.stock-card:hover .card-image-container img {
+    transform: scale(1.1);
+}
+
+.card-info {
+    padding: 1rem;
+    text-align: left;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.character-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.anime-title {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    font-style: italic;
+}
+
+.rarity-badge {
+    align-self: flex-start;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.quantity-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.date-acquired {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.star-rating {
+    color: #ffd700;
+    font-size: 1.1rem;
+    margin-top: auto;
+}
+
+.star.empty {
+    color: #444;
+}
+
+/* Rarity-specific styles for Stock Cards */
+.stock-card.comum { border-color: #9e9e9e; }
+.stock-card.incomum { border-color: #64b5f6; }
+.stock-card.raro { border-color: #ba68c8; }
+.stock-card.lendário { border-color: #ffd54f; }
+.stock-card.mítico { border-color: #ff8a65; }
+.stock-card.especial { border-color: #e57373; }
+
+.stock-card.raro:hover { box-shadow: 0 0 20px #ba68c8; }
+.stock-card.lendário:hover { box-shadow: 0 0 25px #ffd54f; }
+.stock-card.mítico:hover { box-shadow: 0 0 30px #ff8a65; animation: pulse-mythic 1.5s infinite; }
+.stock-card.especial:hover { box-shadow: 0 0 35px #e57373; animation: pulse-special 1.5s infinite; }
+
+@keyframes pulse-mythic {
+    0% { box-shadow: 0 0 30px #ff8a65; }
+    50% { box-shadow: 0 0 45px #ff8a65; }
+    100% { box-shadow: 0 0 30px #ff8a65; }
+}
+
+@keyframes pulse-special {
+    0% { box-shadow: 0 0 35px #e57373, 0 0 15px gold; }
+    50% { box-shadow: 0 0 50px #e57373, 0 0 25px gold; }
+    100% { box-shadow: 0 0 35px #e57373, 0 0 15px gold; }
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .summon-content {
+        flex-direction: column;
+        align-items: center;
+    }
+    .info-panel {
+        width: 100%;
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    body { font-size: 14px; }
+    #stock-container { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+}
+
+@media (max-width: 480px) {
+    #stock-container { grid-template-columns: 1fr; }
+    nav a { font-size: 1rem; margin: 0 0.5rem; }
+}
+
+/* ===== LOADING SCREEN ===== */
+#loading-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--background, #0f0f1a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-bar-container {
+  position: relative;
+  width: 60%;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.loading-bar {
+  position: absolute;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22d3ee, #8b5cf6);
+  animation: loading-fill 1s linear forwards;
+}
+
+@keyframes loading-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.loading-crack {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes crack {
+  0%   { transform: scaleX(0); opacity: 1; background: white; }
+  50%  { transform: scaleX(1); opacity: 1; background: white; }
+  100% { opacity: 0; }
+}
+
+
+.site-notice {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(26, 26, 46, 0.85);
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    backdrop-filter: blur(6px);
+    z-index: 1100;
+    max-width: 300px;
+}
+
+.site-notice span {
+    line-height: 1.4;
+}
+
+.close-notice {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.3s;
+}
+
+.close-notice:hover {
+    color: var(--secondary);
+}
