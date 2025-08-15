@@ -19,24 +19,70 @@ document.addEventListener('DOMContentLoaded', () => {
     let favorites = [];
     let inventory = [];
 
-    // Carregar favoritos do localStorage
+    // Função para atualizar imagens dos favoritos antigos
+    function updateFavoriteImages() {
+        if (!window.characterPoolManager || !window.characterPoolManager.isInitialized) {
+            return;
+        }
+
+        let updated = false;
+        
+        // Obter todos os personagens do pool atualizado
+        const allPoolCharacters = [];
+        Object.keys(window.characterPoolManager.characterPool).forEach(rarity => {
+            allPoolCharacters.push(...window.characterPoolManager.characterPool[rarity]);
+        });
+
+        // Atualizar personagens nos favoritos
+        favorites.forEach(char => {
+            // Procurar personagem correspondente no pool atualizado
+            const poolChar = allPoolCharacters.find(poolChar => 
+                poolChar.name === char.name && poolChar.anime === char.anime
+            );
+            
+            if (poolChar && poolChar.image && poolChar.image !== char.image) {
+                console.log(`Atualizando imagem favorita de ${char.name}: ${char.image} -> ${poolChar.image}`);
+                char.image = poolChar.image;
+                updated = true;
+            }
+        });
+
+        // Salvar se houve atualizações
+        if (updated) {
+            saveFavorites();
+            console.log('Imagens dos favoritos atualizadas!');
+        }
+    }
+
+    // Carregar favoritos do localStorage (apenas na inicialização)
+    let hasLoaded = false;
     function loadFavorites() {
+        // Só carregar uma vez na inicialização
+        if (hasLoaded) {
+            return;
+        }
+        
         try {
             const stored = localStorage.getItem('gacha.favorites.v1');
-            favorites = stored ? JSON.parse(stored) : [];
+            const loadedFavorites = stored ? JSON.parse(stored) : [];
+            
+            favorites = loadedFavorites;
+            hasLoaded = true;
             
             // Carregar inventário também para ter dados completos
             const inventoryStored = localStorage.getItem('gacha.inventory.v1');
             inventory = inventoryStored ? JSON.parse(inventoryStored) : [];
             
             updateStats();
+            console.log('Favoritos carregados:', favorites.length);
         } catch (e) {
             console.error("Erro ao carregar favoritos:", e);
             favorites = [];
+            hasLoaded = true;
         }
     }
 
-    // Salvar favoritos
+    // Salvar favoritos (imediato)
     function saveFavorites() {
         try {
             localStorage.setItem('gacha.favorites.v1', JSON.stringify(favorites));
@@ -242,31 +288,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Verificar se um personagem está favoritado
     function isFavorited(character) {
-        return favorites.some(fav => 
-            fav.name === character.name && 
-            fav.anime === character.anime
-        );
+        const characterId = character.id || `${character.name}_${character.anime}`;
+        return favorites.some(fav => {
+            const favId = fav.id || `${fav.name}_${fav.anime}`;
+            return favId === characterId;
+        });
     }
 
     // Adicionar/remover favorito
     function toggleFavorite(character) {
-        const index = favorites.findIndex(fav => 
-            fav.name === character.name && 
-            fav.anime === character.anime
-        );
+        // Criar identificador único para o personagem
+        const characterId = character.id || `${character.name}_${character.anime}`;
+        
+        const index = favorites.findIndex(fav => {
+            const favId = fav.id || `${fav.name}_${fav.anime}`;
+            return favId === characterId;
+        });
 
         if (index !== -1) {
             // Remover dos favoritos
             favorites.splice(index, 1);
             showToast(`${character.name} removido dos favoritos`);
+            console.log('Favorito removido. Total atual:', favorites.length);
         } else {
             // Adicionar aos favoritos
-            favorites.push({...character});
+            const characterCopy = {...character};
+            // Garantir que tem um ID único
+            if (!characterCopy.id) {
+                characterCopy.id = characterId;
+            }
+            favorites.push(characterCopy);
             showToast(`${character.name} adicionado aos favoritos!`);
+            console.log('Favorito adicionado. Total atual:', favorites.length);
         }
 
+        // Salvar imediatamente
         saveFavorites();
-        renderFavorites();
+        
+        // Atualizar interface após um pequeno delay para garantir que salvou
+        setTimeout(() => {
+            renderFavorites();
+        }, 50);
         
         // Disparar evento para atualizar outras interfaces
         window.dispatchEvent(new CustomEvent('favoritesChanged', {
@@ -344,13 +406,56 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleFavorite,
         loadFavorites,
         renderFavorites,
-        getFavorites: () => favorites
+        getFavorites: () => favorites,
+        addFavorite: (character) => {
+            const characterId = character.id || `${character.name}_${character.anime}`;
+            const existing = favorites.find(fav => {
+                const favId = fav.id || `${fav.name}_${fav.anime}`;
+                return favId === characterId;
+            });
+            if (!existing) {
+                const characterCopy = {...character};
+                if (!characterCopy.id) {
+                    characterCopy.id = characterId;
+                }
+                favorites.push(characterCopy);
+                saveFavorites();
+                renderFavorites();
+                return true;
+            }
+            return false;
+        },
+        removeFavorite: (character) => {
+            const characterId = character.id || `${character.name}_${character.anime}`;
+            const index = favorites.findIndex(fav => {
+                const favId = fav.id || `${fav.name}_${fav.anime}`;
+                return favId === characterId;
+            });
+            if (index !== -1) {
+                favorites.splice(index, 1);
+                saveFavorites();
+                renderFavorites();
+                return true;
+            }
+            return false;
+        }
     };
 
     // Inicializar
     loadFavorites();
     renderFavorites();
     handleScroll();
+
+    // Aguardar o character pool estar pronto para atualizar imagens antigas dos favoritos
+    const checkPoolAndUpdateFavorites = () => {
+        if (window.characterPoolManager && window.characterPoolManager.isInitialized) {
+            updateFavoriteImages();
+            renderFavorites(); // Re-renderizar com imagens atualizadas
+        } else {
+            setTimeout(checkPoolAndUpdateFavorites, 500);
+        }
+    };
+    checkPoolAndUpdateFavorites();
 
     console.log('Sistema de favoritos inicializado');
     console.log('Favoritos carregados:', favorites.length);

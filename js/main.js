@@ -1,5 +1,5 @@
 // Som de revelação
-const revealSound = new Audio('audio/reveal.mp3');
+const revealSound = new Audio('audio/reveal.wav');
 revealSound.volume = 0.9;
 
 // Função para mostrar loading de 1 segundos
@@ -25,29 +25,108 @@ document.addEventListener('DOMContentLoaded', async () => {
     const summonButton = document.getElementById('summon-button');
     const rarityChancesContainer = document.getElementById('rarity-chances');
 
+    // Verificar se elementos existem
+    if (!summonButton) {
+        console.error('❌ Summon button not found!');
+        return;
+    }
+    
+    if (!carouselContainer) {
+        console.error('❌ Carousel container not found!');
+        return;
+    }
+
     let isInitializing = true;
 
     // Mostrar indicação de carregamento
     summonButton.disabled = true;
-    summonButton.textContent = 'Carregando Personagens...';
+    summonButton.innerHTML = '<span>⏳</span> Carregando Personagens...';
     summonButton.style.opacity = '0.7';
 
-    // Inicializar o sistema de pool de personagens
-    console.log('🔄 Initializing character pool...');
-    try {
-        await window.characterPoolManager.initialize();
-        console.log('✅ Character pool ready!');
+    // Verificar se characterPoolManager existe
+    if (!window.characterPoolManager) {
+        console.error('❌ CharacterPoolManager not found! Criando nova instância...');
+        // Importar e criar nova instância se necessário
+        const script = document.createElement('script');
+        script.src = 'js/characterPool.js';
+        script.onload = async () => {
+            await initializeCharacterPool();
+        };
+        document.head.appendChild(script);
+        return;
+    }
+
+    await initializeCharacterPool();
+
+    async function initializeCharacterPool() {
+        // Inicializar o sistema de pool de personagens
+        console.log('🔄 Initializing character pool...');
         
-        // Restaurar botão
-        summonButton.textContent = 'Invocar';
-        summonButton.style.opacity = '1';
-        summonButton.disabled = false;
+        // Timeout de 30 segundos para inicialização
+        const timeout = setTimeout(() => {
+            console.warn('⚠️ Inicialização demorou muito, habilitando botão mesmo assim...');
+            summonButton.innerHTML = 'Invocar (Modo Offline)';
+            summonButton.style.opacity = '1';
+            summonButton.disabled = false;
+            isInitializing = false;
+        }, 30000);
         
-        isInitializing = false;
-    } catch (error) {
-        console.error('❌ Failed to initialize character pool:', error);
-        summonButton.textContent = 'Erro - Recarregue a Página';
-        summonButton.style.opacity = '0.5';
+        try {
+            await window.characterPoolManager.initialize();
+            clearTimeout(timeout);
+            console.log('✅ Character pool ready!');
+            
+            // Verificar se foi inicializado corretamente
+            if (!window.characterPoolManager.isInitialized) {
+                console.warn('⚠️ Pool manager não foi inicializado corretamente');
+                summonButton.innerHTML = 'Erro de Inicialização';
+                summonButton.style.opacity = '0.7';
+                return;
+            }
+            
+            // Verificar se o pool tem personagens
+            const poolStats = window.characterPoolManager.getPoolStats();
+            const totalChars = Object.values(poolStats).reduce((sum, stat) => sum + stat.count, 0);
+            console.log('📊 Total de personagens no pool:', totalChars);
+            console.log('📊 Stats detalhados:', poolStats);
+            
+            if (totalChars === 0) {
+                console.warn('⚠️ Pool vazio! Tentando criar fallback...');
+                // Tentar criar fallback manualmente
+                window.characterPoolManager.createFallbackPool();
+                const newStats = window.characterPoolManager.getPoolStats();
+                const newTotal = Object.values(newStats).reduce((sum, stat) => sum + stat.count, 0);
+                
+                if (newTotal === 0) {
+                    summonButton.innerHTML = 'Erro - Recarregue a Página';
+                    summonButton.style.opacity = '0.7';
+                    return;
+                }
+                console.log('✅ Fallback criado com sucesso! Total:', newTotal);
+            }
+            
+            // Restaurar botão
+            summonButton.innerHTML = 'Invocar';
+            summonButton.style.opacity = '1';
+            summonButton.disabled = false;
+            
+            isInitializing = false;
+        } catch (error) {
+            clearTimeout(timeout);
+            console.error('❌ Failed to initialize character pool:', error);
+            // Tentar fallback em caso de erro
+            try {
+                window.characterPoolManager.createFallbackPool();
+                summonButton.innerHTML = 'Invocar (Modo Offline)';
+                summonButton.style.opacity = '1';
+                summonButton.disabled = false;
+                isInitializing = false;
+            } catch (fallbackError) {
+                console.error('❌ Fallback também falhou:', fallbackError);
+                summonButton.innerHTML = 'Erro - Recarregue a Página';
+                summonButton.style.opacity = '0.5';
+            }
+        }
     }
 
     function populateRarityChances() {
@@ -106,21 +185,40 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         
+        // Verificar se characterPoolManager existe e está inicializado
+        if (!window.characterPoolManager) {
+            console.error("CharacterPoolManager não encontrado!");
+            return;
+        }
+        
+        if (!window.characterPoolManager.isInitialized) {
+            console.log("Character pool ainda não foi inicializado...");
+            return;
+        }
+        
         // Verificar se ainda tem spins disponíveis ANTES de iniciar
         if (window.canSpin && !window.canSpin()) {
             console.log("Sem invocações restantes!");
             return;
         }
 
+        // Tocar som de summon
+        const summonSound = new Audio('audio/summon.mp3'); 
+        summonSound.volume = 0.8;
+        summonSound.currentTime = 0;
+        summonSound.play().catch(err => console.log("Som bloqueado pelo navegador:", err));
+
         summonButton.disabled = true;
 
         // Usar o novo sistema de summon
         const winningCharacter = window.characterPoolManager.performSummon();
         if (!winningCharacter) {
-            console.error("Failed to summon character!");
+            console.error("❌ Falha ao invocar personagem!");
             summonButton.disabled = false;
             return;
         }
+        
+        console.log(`Você obteve: ${winningCharacter.name} (${winningCharacter.rarity})`);
 
         // Adicionar stars baseado na popularidade
         winningCharacter.stars = getStars(winningCharacter.popularity);
@@ -162,15 +260,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function revealCharacter(character, cardElement) {
         const rarityInfo = rarities[character.rarity] || rarities['Common'];
-        const glowColor = rarityInfo.glow;
+        const glowColor = rarityInfo.color; // Usar cor sólida para o glow principal
         
-        cardElement.innerHTML = `<img src="${character.image}" alt="${character.name}">`;
+        cardElement.innerHTML = `<img src="${character.image}" alt="${character.name}" onerror="this.src='https://via.placeholder.com/280x400/1a1a2e/a33bff?text=Sem+Imagem'">`;
         gsap.set(cardElement, { x: 0, y: 0, rotation: 0, scale: 1.5, zIndex: 100 });
 
         const tl = gsap.timeline();
         tl.to(cardElement, { scale: 1, duration: 0.5, ease: 'back.out(1.7)' })
           .to(cardElement, {
-              boxShadow: `0 0 35px 15px ${glowColor}, 0 0 50px 20px ${rarityInfo.color}`,
+              boxShadow: `0 0 30px 10px ${glowColor}70, 0 0 60px 25px ${glowColor}40, 0 0 90px 35px ${glowColor}20`,
               duration: 0.8,
               ease: 'power2.inOut',
               yoyo: true,
@@ -189,7 +287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 x: '50%',
                 y: '50%',
                 scale: `random(0.5, 1)`,
-                backgroundColor: glowColor
+                backgroundColor: rarityInfo.color
             }, {
                 x: `random(-300, 300)px`,
                 y: `random(-300, 300)px`,
@@ -298,24 +396,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    summonButton.addEventListener('click', spinCarousel);
+    // Adicionar eventos para desktop e mobile
+    summonButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        spinCarousel();
+    });
+    
+    summonButton.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        spinCarousel();
+    });
+    
+    // Prevenir zoom em double tap no iOS
+    summonButton.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+    });
+    
+    // Debug removido - sistema funcionando corretamente
     
     // Inicializar UI
     createCarousel();
     populateRarityChances();
     animateInfoPanel();
 });
-// Carregar som
-const summonSound = new Audio('audio/summon.mp3'); 
-summonSound.volume = 0.8; // Volume de 0 a 1
 
-// Achar botão
-const summonButton = document.getElementById('summon-button');
-
-// Evento de clique
-summonButton.addEventListener('click', () => {
-    summonSound.currentTime = 0; // Reinicia caso clique rápido
-    summonSound.play().catch(err => console.log("Som bloqueado pelo navegador:", err));
-
-    // Aqui continua sua lógica original de summon...
-});
+// Sistema de som integrado - movido para dentro do evento principal

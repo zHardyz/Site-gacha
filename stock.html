@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coleção</title>
+    <title>Minha Coleção - Gacha Invocação</title>
+    <meta name="description" content="Visualize sua coleção completa de personagens de anime no sistema gacha">
+    <link rel="icon" type="image/png" href="icone anime.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/stock.css">
     <link rel="stylesheet" href="css/favoritos.css">
@@ -15,8 +17,31 @@
     <div class="background-pattern"></div>
     <div class="gradient-overlay"></div>
     
+    <!-- Botão de menu mobile -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+    </button>
+
+    <!-- Navbar mobile (fora do header) -->
+    <nav class="nav-container" id="nav-container">
+        <a href="index.html" class="nav-link">
+            <span class="nav-icon">⚡</span>
+            Invocar
+        </a>
+        <a href="stock.html" class="nav-link active">
+            <span class="nav-icon">📦</span>
+            Coleção
+        </a>
+        <a href="favoritos.html" class="nav-link">
+            <span class="nav-icon">💖</span>
+            Favoritos
+        </a>
+    </nav>
+
     <header class="main-header">
-        <nav class="nav-container">
+        <nav class="nav-container-desktop">
             <a href="index.html" class="nav-link">
                 <span class="nav-icon">⚡</span>
                 Invocar
@@ -144,5 +169,37 @@
     <script src="js/favoritos.js"></script>
     <script src="js/characterModal.js"></script>
     <script src="js/stock.js"></script>
+    
+    <script>
+        // Mobile Menu Toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('mobile-menu-toggle');
+            const navContainer = document.getElementById('nav-container');
+            
+            if (menuToggle && navContainer) {
+                menuToggle.addEventListener('click', () => {
+                    menuToggle.classList.toggle('active');
+                    navContainer.classList.toggle('active');
+                });
+                
+                // Fechar menu ao clicar em um link
+                const navLinks = navContainer.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        menuToggle.classList.remove('active');
+                        navContainer.classList.remove('active');
+                    });
+                });
+                
+                // Fechar menu ao clicar fora dele
+                document.addEventListener('click', (e) => {
+                    if (!menuToggle.contains(e.target) && !navContainer.contains(e.target)) {
+                        menuToggle.classList.remove('active');
+                        navContainer.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

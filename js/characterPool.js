@@ -1,7 +1,7 @@
 // Sistema de Pool de Personagens com Cache e Controle de Raridade
 class CharacterPoolManager {
     constructor() {
-        this.CACHE_KEY = 'gacha.character.pool.v3'; // Atualizado para forçar novo cache
+        this.CACHE_KEY = 'gacha.character.pool.v4'; // Atualizado para forçar novo cache e corrigir imagens
         this.CACHE_TIMESTAMP_KEY = 'gacha.character.pool.timestamp.v3';
         this.LAST_SUMMONS_KEY = 'gacha.last.summons.v1';
         this.CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 horas
@@ -208,7 +208,8 @@ class CharacterPoolManager {
                 if (!char.name?.full || 
                     !char.image?.large || 
                     char.image.large.includes('default') ||
-                    char.name.full.length < 2) {
+                    char.name.full.length < 2 ||
+                    !char.image.large.startsWith('http')) {
                     continue;
                 }
                 
@@ -234,7 +235,7 @@ class CharacterPoolManager {
             if (!pageData.pageInfo.hasNextPage) break;
             currentPage++;
             
-            await new Promise(resolve => setTimeout(resolve, 30));
+            await new Promise(resolve => setTimeout(resolve, 100)); // Aumentado de 30ms para 100ms
         }
 
         // Log da distribuição após esta busca
@@ -397,7 +398,71 @@ class CharacterPoolManager {
         }
 
         console.log('🔄 Cache invalid or missing, building new character pool...');
-        await this.buildCharacterPool();
+        try {
+            await this.buildCharacterPool();
+        } catch (error) {
+            console.error('❌ Erro ao construir pool da API, usando personagens de fallback...', error);
+            this.createFallbackPool();
+        }
+    }
+
+    // Criar pool de fallback se a API falhar
+    createFallbackPool() {
+        console.log('🔧 Criando pool de fallback...');
+        
+        const fallbackCharacters = [
+            { id: 1, name: 'Naruto Uzumaki', anime: 'Naruto', rarity: 'Legendary', popularity: 50000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b17-IazKGogHSHZW.png' },
+            { id: 2, name: 'Monkey D. Luffy', anime: 'One Piece', rarity: 'Legendary', popularity: 45000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b40-chR0Ec0RcEzw.png' },
+            { id: 3, name: 'Edward Elric', anime: 'Fullmetal Alchemist', rarity: 'Epic', popularity: 35000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b11-Zqvv6CzQ6nbJ.jpg' },
+            { id: 4, name: 'Light Yagami', anime: 'Death Note', rarity: 'Mythic', popularity: 40000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b80-IjmKt6bMlayW.jpg' },
+            { id: 5, name: 'Ichigo Kurosaki', anime: 'Bleach', rarity: 'Epic', popularity: 30000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b5-Vddc3hCzKF7s.jpg' },
+            { id: 6, name: 'Goku', anime: 'Dragon Ball Z', rarity: 'Special', popularity: 60000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b246-0VBE4PdVZjkF.jpg' },
+            { id: 7, name: 'Sasuke Uchiha', anime: 'Naruto', rarity: 'Epic', popularity: 35000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b13-LJDzDiybgDLH.png' },
+            { id: 8, name: 'Levi Ackerman', anime: 'Attack on Titan', rarity: 'Legendary', popularity: 55000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b45627-dUeb4ukrE0nF.jpg' },
+            { id: 9, name: 'Senku Ishigami', anime: 'Dr. Stone', rarity: 'Rare', popularity: 15000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b106414-RWJGm7QNUyoJ.png' },
+            { id: 10, name: 'Tanjiro Kamado', anime: 'Demon Slayer', rarity: 'Epic', popularity: 25000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b146156-lWzTaO9u4Xvr.jpg' },
+        ];
+
+        // Resetar pools
+        Object.keys(this.characterPool).forEach(rarity => {
+            this.characterPool[rarity] = [];
+        });
+
+        // Adicionar personagens de fallback
+        fallbackCharacters.forEach(char => {
+            char.lastSummoned = 0;
+            this.characterPool[char.rarity].push(char);
+        });
+
+        // Adicionar alguns personagens comuns
+        for (let i = 11; i <= 25; i++) {
+            this.characterPool['Common'].push({
+                id: i,
+                name: `Personagem ${i}`,
+                anime: 'Anime Genérico',
+                rarity: 'Common',
+                popularity: Math.floor(Math.random() * 2000) + 500,
+                image: 'https://via.placeholder.com/280x400/1a1a2e/a33bff?text=Sem+Imagem',
+                lastSummoned: 0
+            });
+        }
+
+        // Adicionar alguns raros
+        for (let i = 26; i <= 35; i++) {
+            this.characterPool['Rare'].push({
+                id: i,
+                name: `Herói ${i}`,
+                anime: 'Anime Legal',
+                rarity: 'Rare',
+                popularity: Math.floor(Math.random() * 5000) + 3000,
+                image: 'https://via.placeholder.com/280x400/3b82f6/ffffff?text=Raro',
+                lastSummoned: 0
+            });
+        }
+
+        console.log('✅ Pool de fallback criado com sucesso!');
+        this.saveToCache();
+        this.isInitialized = true;
     }
 
     // Carregar histórico de summons
@@ -526,7 +591,9 @@ class CharacterPoolManager {
         // 3. Adicionar ao histórico
         this.addToHistory(character);
 
-        console.log(`✨ Summoned: ${character.name} (${character.rarity})`);
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.log(`✨ Summoned: ${character.name} (${character.rarity})`);
+        }
         return character;
     }
 

@@ -22,6 +22,42 @@ document.addEventListener('DOMContentLoaded', () => {
     let inventory = [];
     let favorites = [];
 
+    // Função para atualizar imagens dos personagens antigos
+    function updateCharacterImages() {
+        if (!window.characterPoolManager || !window.characterPoolManager.isInitialized) {
+            return;
+        }
+
+        let updated = false;
+        const poolStats = window.characterPoolManager.getPoolStats();
+        
+        // Obter todos os personagens do pool atualizado
+        const allPoolCharacters = [];
+        Object.keys(window.characterPoolManager.characterPool).forEach(rarity => {
+            allPoolCharacters.push(...window.characterPoolManager.characterPool[rarity]);
+        });
+
+        // Atualizar personagens no inventário
+        inventory.forEach(char => {
+            // Procurar personagem correspondente no pool atualizado
+            const poolChar = allPoolCharacters.find(poolChar => 
+                poolChar.name === char.name && poolChar.anime === char.anime
+            );
+            
+            if (poolChar && poolChar.image && poolChar.image !== char.image) {
+                console.log(`Atualizando imagem de ${char.name}: ${char.image} -> ${poolChar.image}`);
+                char.image = poolChar.image;
+                updated = true;
+            }
+        });
+
+        // Salvar se houve atualizações
+        if (updated) {
+            localStorage.setItem('gacha.inventory.v1', JSON.stringify(inventory));
+            console.log('Imagens do inventário atualizadas!');
+        }
+    }
+
     // Função para verificar se um personagem está favoritado
     function checkIfFavorited(character) {
         try {
@@ -545,6 +581,17 @@ document.addEventListener('DOMContentLoaded', () => {
     handleScroll();
     if (inventory.length > 0) addSearchFunctionality();
 
+    // Aguardar o character pool estar pronto para atualizar imagens antigas
+    const checkPoolAndUpdate = () => {
+        if (window.characterPoolManager && window.characterPoolManager.isInitialized) {
+            updateCharacterImages();
+            renderGrid(inventory); // Re-renderizar com imagens atualizadas
+        } else {
+            setTimeout(checkPoolAndUpdate, 500);
+        }
+    };
+    checkPoolAndUpdate();
+
     // NEW: enriquecer dados que faltam (popularidade/quote) direto da AniList
     enrichInventoryMissingInfo().catch(console.error);
 
@@ -579,6 +626,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Recarregar favorites quando a página for focada (para sincronizar entre abas)
     window.addEventListener('focus', () => {
-        renderGrid(inventory);
+        // Apenas recarregar se estamos na página de stock
+        if (window.location.pathname.includes('stock.html')) {
+            renderGrid(inventory);
+        }
     });
 });

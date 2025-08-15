@@ -14,25 +14,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSpinsUI() {
-        spinsLeftElement.textContent = `Invocações restantes: ${spinsLeft}/10`;
-        if (spinsLeft === 1) {
-            spinsLeftElement.classList.add('pulse');
-        } else {
-            spinsLeftElement.classList.remove('pulse');
+        if (spinsLeftElement) {
+            spinsLeftElement.textContent = `Invocações restantes: ${spinsLeft}/10`;
+            if (spinsLeft === 1) {
+                spinsLeftElement.classList.add('pulse');
+            } else {
+                spinsLeftElement.classList.remove('pulse');
+            }
         }
         
-        // Atualizar estado do botão imediatamente
-        const isDisabled = spinsLeft <= 0;
-        summonButton.disabled = isDisabled;
-        
-        if (isDisabled) {
-            summonButton.style.opacity = '0.5';
-            summonButton.style.cursor = 'not-allowed';
-            summonButton.textContent = 'Sem Invocações';
-        } else {
-            summonButton.style.opacity = '1';
-            summonButton.style.cursor = 'pointer';
-            summonButton.textContent = 'Invocar';
+        // Só atualizar botão se não estiver inicializando
+        if (summonButton && !summonButton.textContent.includes('Carregando')) {
+            const isDisabled = spinsLeft <= 0;
+            
+            if (isDisabled) {
+                summonButton.disabled = true;
+                summonButton.style.opacity = '0.5';
+                summonButton.style.cursor = 'not-allowed';
+                summonButton.textContent = 'Sem Invocações';
+            } else if (summonButton.textContent === 'Sem Invocações') {
+                // Só restaurar se estava bloqueado por falta de spins
+                summonButton.disabled = false;
+                summonButton.style.opacity = '1';
+                summonButton.style.cursor = 'pointer';
+                summonButton.textContent = 'Invocar';
+            }
         }
     }
 
@@ -66,14 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
             spinsLeft--;
             localStorage.setItem('spinsLeft', spinsLeft);
             updateSpinsUI();
-            
-            // Verificar se chegou a zero e bloquear imediatamente
-            if (spinsLeft <= 0) {
-                summonButton.disabled = true;
-                summonButton.style.opacity = '0.5';
-                summonButton.style.cursor = 'not-allowed';
-                summonButton.textContent = 'Sem Invocações';
-            }
             return true;
         }
         return false;
