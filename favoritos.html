@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coleção</title>
+    <title>Favoritos</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/stock.css">
     <link rel="stylesheet" href="css/favoritos.css">
@@ -21,11 +21,11 @@
                 <span class="nav-icon">⚡</span>
                 Invocar
             </a>
-            <a href="stock.html" class="nav-link active">
+            <a href="stock.html" class="nav-link">
                 <span class="nav-icon">📦</span>
                 Coleção
             </a>
-            <a href="favoritos.html" class="nav-link">
+            <a href="favoritos.html" class="nav-link active">
                 <span class="nav-icon">💖</span>
                 Favoritos
             </a>
@@ -36,28 +36,28 @@
         <div class="stock-header">
             <div class="header-content">
                 <h1 class="main-title">
-                    <span class="title-text">Minha Coleção</span>
+                    <span class="title-text">Meus Favoritos</span>
                     <div class="title-decoration"></div>
                 </h1>
                 <div class="stock-stats">
                     <div class="stat-item">
-                        <span class="stat-number" id="total-cards">0</span>
-                        <span class="stat-label">Cartas</span>
+                        <span class="stat-number" id="favorite-cards">0</span>
+                        <span class="stat-label">Favoritos</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number" id="unique-cards">0</span>
-                        <span class="stat-label">Únicos</span>
+                        <span class="stat-number" id="favorite-rarities">0</span>
+                        <span class="stat-label">Raridades</span>
                     </div>
                 </div>
             </div>
         </div>
         
         <section class="stock-container">
-            <div class="stock-grid" aria-live="polite"></div>
+            <div class="favorites-grid" aria-live="polite"></div>
             <div class="empty-state" style="display: none;">
-                <div class="empty-icon">📦</div>
-                <h3>Sua coleção está vazia</h3>
-                <p>Comece a invocar para adicionar cartas à sua coleção!</p>
+                <div class="empty-icon">💖</div>
+                <h3>Nenhum favorito ainda</h3>
+                <p>Vá para sua <a href="stock.html" style="color: var(--accent)">coleção</a> e favorite seus personagens preferidos!</p>
             </div>
         </section>
         
@@ -143,6 +143,5 @@
     <script src="js/dataManager.js"></script>
     <script src="js/favoritos.js"></script>
     <script src="js/characterModal.js"></script>
-    <script src="js/stock.js"></script>
 </body>
 </html>

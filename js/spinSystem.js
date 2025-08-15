@@ -14,16 +14,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSpinsUI() {
-        spinsLeftElement.textContent = `Spins left: ${spinsLeft}/10`;
+        spinsLeftElement.textContent = `Invocações restantes: ${spinsLeft}/10`;
         if (spinsLeft === 1) {
             spinsLeftElement.classList.add('pulse');
         } else {
             spinsLeftElement.classList.remove('pulse');
         }
-        if (spinsLeft === 0) {
-            summonButton.disabled = true;
+        
+        // Atualizar estado do botão imediatamente
+        const isDisabled = spinsLeft <= 0;
+        summonButton.disabled = isDisabled;
+        
+        if (isDisabled) {
+            summonButton.style.opacity = '0.5';
+            summonButton.style.cursor = 'not-allowed';
+            summonButton.textContent = 'Sem Invocações';
         } else {
-            summonButton.disabled = false;
+            summonButton.style.opacity = '1';
+            summonButton.style.cursor = 'pointer';
+            summonButton.textContent = 'Invocar';
         }
     }
 
@@ -48,17 +57,32 @@ document.addEventListener('DOMContentLoaded', () => {
         countdownElement.style.display = 'block';
     }
 
+    function canSpin() {
+        return spinsLeft > 0;
+    }
+
     function handleSpin() {
         if (spinsLeft > 0) {
             spinsLeft--;
             localStorage.setItem('spinsLeft', spinsLeft);
             updateSpinsUI();
+            
+            // Verificar se chegou a zero e bloquear imediatamente
+            if (spinsLeft <= 0) {
+                summonButton.disabled = true;
+                summonButton.style.opacity = '0.5';
+                summonButton.style.cursor = 'not-allowed';
+                summonButton.textContent = 'Sem Invocações';
+            }
+            return true;
         }
+        return false;
     }
 
     // summonButton.addEventListener('click', handleSpin);
 
     window.handleSpin = handleSpin;
+    window.canSpin = canSpin;
 
     updateSpinsUI();
     setInterval(updateCountdown, 1000);

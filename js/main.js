@@ -25,32 +25,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     const summonButton = document.getElementById('summon-button');
     const rarityChancesContainer = document.getElementById('rarity-chances');
 
-    const ANILIST_API_URL = 'https://graphql.anilist.co';
-    const ANILIST_TOKEN = ""; // Insira aqui seu token OAuth quando necessário
+    let isInitializing = true;
 
-    let fetchedCharacters = new Set();
+    // Mostrar indicação de carregamento
+    summonButton.disabled = true;
+    summonButton.textContent = 'Carregando Personagens...';
+    summonButton.style.opacity = '0.7';
 
-    // Função para normalizar raridade para o padrão do stock.js
-    function normalizeRarity(rarity) {
-        const map = {
-            'Comum': 'Common',
-            'Incomum': 'Rare', // ajuste conforme sua lógica real
-            'Raro': 'Rare',
-            'Épico': 'Epic',
-            'Lendário': 'Legendary',
-            'Mítico': 'Mythic',
-            'Especial': 'Special'
-        };
-        return map[rarity] || rarity;
+    // Inicializar o sistema de pool de personagens
+    console.log('🔄 Initializing character pool...');
+    try {
+        await window.characterPoolManager.initialize();
+        console.log('✅ Character pool ready!');
+        
+        // Restaurar botão
+        summonButton.textContent = 'Invocar';
+        summonButton.style.opacity = '1';
+        summonButton.disabled = false;
+        
+        isInitializing = false;
+    } catch (error) {
+        console.error('❌ Failed to initialize character pool:', error);
+        summonButton.textContent = 'Erro - Recarregue a Página';
+        summonButton.style.opacity = '0.5';
     }
 
     function populateRarityChances() {
         const rarityList = document.createElement('ul');
-        for (const rarity in rarities) {
-            const percentage = (rarities[rarity].dropRate * 100).toFixed(1);
+        
+        // Usar as novas porcentagens do character pool manager
+        const poolStats = window.characterPoolManager.getPoolStats();
+        
+        for (const [rarity, stats] of Object.entries(poolStats)) {
+            const rarityInfo = rarities[rarity] || { color: '#ffffff' };
             const listItem = document.createElement('li');
-            // Aqui mostramos o nome em inglês ou traduzido como quiser
-            listItem.innerHTML = `${rarity}: <span style="color: ${rarities[rarity].color}">${percentage}%</span>`;
+            const rarityName = rarityInfo.name || rarity;
+            listItem.innerHTML = `${rarityName}: <span style="color: ${rarityInfo.color}">${stats.percentage}%</span>`;
             rarityList.appendChild(listItem);
         }
         rarityChancesContainer.appendChild(rarityList);
@@ -66,51 +76,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    async function fetchCharacters(page = 1, perPage = 50) {
-        const query = `
-            query ($page: Int, $perPage: Int) {
-                Page(page: $page, perPage: $perPage) {
-                    characters(sort: FAVOURITES_DESC) {
-                        id
-                        name { full }
-                        image { large }
-                        popularity: favourites
-                        media { nodes { title { romaji } } }
-                    }
-                }
-            }
-        `;
-        const variables = { page, perPage };
-        const headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        };
-        if (ANILIST_TOKEN) {
-            headers['Authorization'] = `Bearer ${ANILIST_TOKEN}`;
-        }
-        try {
-            const response = await fetch(ANILIST_API_URL, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ query, variables })
-            });
-            const data = await response.json();
-            return data.data.Page.characters;
-        } catch (error) {
-            console.error('Error fetching characters:', error);
-            return [];
-        }
-    }
-
-    function getRarity(popularity) {
-        if (popularity > 50000) return 'Special';
-        if (popularity > 30000) return 'Mythic';
-        if (popularity > 20000) return 'Legendary';
-        if (popularity > 5000) return 'Rare';
-        if (popularity > 1000) return 'Common'; // Pode ajustar se quiser subdividir
-        return 'Common';
-    }
-
     function getStars(popularity) {
         if (popularity > 50000) return 5;
         if (popularity > 30000) return 4;
@@ -120,49 +85,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         return 0;
     }
 
-    async function loadInitialCharacters() {
-        let characters = [];
-        let page = 1;
-        while (characters.length < 100) {
-            const fetched = await fetchCharacters(page);
-            if (fetched.length === 0) break;
-            fetched.forEach(char => {
-                if (!fetchedCharacters.has(char.id)) {
-                    fetchedCharacters.add(char.id);
-                    characters.push({
-                        id: char.id,
-                        name: char.name.full,
-                        image: char.image.large,
-                        rarity: getRarity(char.popularity),
-                        popularity: char.popularity,
-                        stars: getStars(char.popularity),
-                        anime: char.media.nodes[0]?.title?.romaji || 'Unknown'
-                    });
-                }
-            });
-            page++;
-        }
-        bannerCharacters = characters.slice(0, 100);
-        createCarousel();
-    }
-
     function createCarousel() {
         carouselContainer.innerHTML = '';
         const carousel = document.createElement('div');
         carousel.className = 'carousel';
-        bannerCharacters.forEach(() => {
+        
+        // Criar cards genéricos para o carrossel
+        for (let i = 0; i < 5; i++) {
             const card = document.createElement('div');
             card.className = 'carousel-card';
+            card.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">?</div>';
             carousel.appendChild(card);
-        });
+        }
         carouselContainer.appendChild(carousel);
     }
 
     function spinCarousel() {
-        if (bannerCharacters.length === 0) return;
+        if (isInitializing) {
+            console.log("Ainda inicializando banco de personagens...");
+            return;
+        }
+        
+        // Verificar se ainda tem spins disponíveis ANTES de iniciar
+        if (window.canSpin && !window.canSpin()) {
+            console.log("Sem invocações restantes!");
+            return;
+        }
+
         summonButton.disabled = true;
 
-        const winningCharacter = selectCharacter();
+        // Usar o novo sistema de summon
+        const winningCharacter = window.characterPoolManager.performSummon();
+        if (!winningCharacter) {
+            console.error("Failed to summon character!");
+            summonButton.disabled = false;
+            return;
+        }
+
+        // Adicionar stars baseado na popularidade
+        winningCharacter.stars = getStars(winningCharacter.popularity);
+
         const cards = document.querySelectorAll('.carousel-card');
         const revealCard = cards[Math.floor(cards.length / 2)];
 
@@ -177,30 +139,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             onComplete: () => {
                 revealCharacter(winningCharacter, revealCard);
                 saveToStock(winningCharacter);
-                if (window.handleSpin) window.handleSpin();
-                summonButton.disabled = false;
+                
+                // Consumir o spin e atualizar UI
+                if (window.handleSpin) {
+                    window.handleSpin();
+                }
+                
+                // Verificar se ainda tem spins após este spin
+                if (window.canSpin && window.canSpin()) {
+                    summonButton.disabled = false;
+                } else {
+                    summonButton.disabled = true;
+                    summonButton.style.opacity = '0.5';
+                    summonButton.style.cursor = 'not-allowed';
+                    summonButton.textContent = 'Sem Invocações';
+                }
             }
         });
     }
 
-    function selectCharacter() {
-        const randomNumber = Math.random();
-        let cumulativeProbability = 0;
-        for (const rarity in rarities) {
-            cumulativeProbability += rarities[rarity].dropRate;
-            if (randomNumber <= cumulativeProbability) {
-                const charactersOfRarity = bannerCharacters.filter(c => c.rarity === rarity);
-                if (charactersOfRarity.length > 0) {
-                    return charactersOfRarity[Math.floor(Math.random() * charactersOfRarity.length)];
-                }
-            }
-        }
-        return bannerCharacters[Math.floor(Math.random() * bannerCharacters.length)];
-    }
+
 
     function revealCharacter(character, cardElement) {
-        const rarityKey = normalizeRarity(character.rarity);
-        const rarityInfo = rarities[rarityKey] || rarities['Common'];
+        const rarityInfo = rarities[character.rarity] || rarities['Common'];
         const glowColor = rarityInfo.glow;
         
         cardElement.innerHTML = `<img src="${character.image}" alt="${character.name}">`;
@@ -214,7 +175,11 @@ document.addEventListener('DOMContentLoaded', async () => {
               ease: 'power2.inOut',
               yoyo: true,
               repeat: 3
-          }, "-=.2");
+          }, "-=.2")
+          .call(() => {
+              // Criar e mostrar animação do nome
+              showCharacterNameAnimation(character, rarityInfo, cardElement);
+          }, null, "-=1.5");
 
         for (let i = 0; i < 30; i++) {
             const particle = document.createElement('div');
@@ -235,7 +200,76 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        console.log(`You got: ${character.name} (${character.rarity})`);
+        console.log(`Você obteve: ${character.name} (${character.rarity})`);
+    }
+
+    function showCharacterNameAnimation(character, rarityInfo, cardElement) {
+        // Remover animação anterior se existir
+        const existingAnimation = document.querySelector('.character-name-reveal');
+        if (existingAnimation) {
+            existingAnimation.remove();
+        }
+
+        // Obter posição do card
+        const cardRect = cardElement.getBoundingClientRect();
+        
+        // Criar container da animação menor e mais discreto
+        const nameContainer = document.createElement('div');
+        nameContainer.className = 'character-name-reveal';
+        nameContainer.innerHTML = `
+            <div class="name-content-compact">
+                <div class="name-rarity-compact" style="color: ${rarityInfo.color}">
+                    ${character.rarity}
+                </div>
+                <div class="name-text-compact">
+                    ${character.name}
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(nameContainer);
+
+        // Posicionar no canto superior direito do card
+        gsap.set(nameContainer, {
+            position: 'fixed',
+            top: cardRect.top - 10,
+            right: window.innerWidth - cardRect.right + 10,
+            zIndex: 10001
+        });
+
+        // Animação rápida e discreta
+        const nameTimeline = gsap.timeline();
+        
+        nameTimeline
+            .set(nameContainer, { 
+                opacity: 0,
+                scale: 0.5,
+                x: 20,
+                y: -10
+            })
+            .to(nameContainer, {
+                opacity: 1,
+                scale: 1,
+                x: 0,
+                y: 0,
+                duration: 0.3,
+                ease: 'back.out(1.4)'
+            })
+            .to(nameContainer, {
+                opacity: 0,
+                scale: 0.8,
+                x: 10,
+                y: -5,
+                duration: 0.2,
+                ease: 'power2.in',
+                delay: 1.2
+            })
+            .call(() => {
+                nameContainer.remove();
+            });
+
+        // Guardar referência para remoção rápida
+        window.currentNameAnimation = nameContainer;
     }
 
     function saveToStock(character) {
@@ -266,10 +300,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     summonButton.addEventListener('click', spinCarousel);
     
-
+    // Inicializar UI
+    createCarousel();
     populateRarityChances();
     animateInfoPanel();
-    loadInitialCharacters();
 });
 // Carregar som
 const summonSound = new Audio('audio/summon.mp3'); 

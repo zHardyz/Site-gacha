@@ -20,6 +20,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let inventory = [];
+    let favorites = [];
+
+    // Função para verificar se um personagem está favoritado
+    function checkIfFavorited(character) {
+        try {
+            const stored = localStorage.getItem('gacha.favorites.v1');
+            favorites = stored ? JSON.parse(stored) : [];
+            return favorites.some(fav => 
+                fav.name === character.name && 
+                fav.anime === character.anime
+            );
+        } catch (e) {
+            return false;
+        }
+    }
 
     function loadInventory() {
         try {
@@ -137,6 +152,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Função para determinar raridade baseada na popularidade (igual ao characterPool.js)
+    function determineRarity(popularity) {
+        if (popularity >= 120000) return 'Special';
+        if (popularity >= 60000) return 'Mythic';
+        if (popularity >= 25000) return 'Legendary';
+        if (popularity >= 10000) return 'Epic';
+        if (popularity >= 3000) return 'Rare';
+        return 'Common';
+    }
+
     // Enriquecer itens do estoque que não tenham popularity/quote
     async function enrichInventoryMissingInfo() {
         const toUpdate = inventory.filter(c => (c && c.id) && (!('popularity' in c) || !('quote' in c)));
@@ -150,7 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const current = toUpdate[idx++];
                 const extra = await fetchAniListCharacterById(current.id);
                 if (extra) {
-                    if (typeof extra.favourites === 'number') current.popularity = extra.favourites;
+                    if (typeof extra.favourites === 'number') {
+                        current.popularity = extra.favourites;
+                        // Recalcular raridade baseada na popularidade atual
+                        current.rarity = determineRarity(extra.favourites);
+                    }
                     const q = extractQuote(extra.description || "");
                     if (q) current.quote = q;
                     if (extra.siteUrl) current.siteUrl = extra.siteUrl;
@@ -162,6 +191,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         saveInventory();
         renderGrid(inventory);
+    }
+
+    // Função para corrigir inconsistências de raridade no inventário
+    function fixRarityInconsistencies() {
+        let fixed = 0;
+        inventory.forEach(char => {
+            if (char.popularity && typeof char.popularity === 'number') {
+                const correctRarity = determineRarity(char.popularity);
+                if (char.rarity !== correctRarity) {
+                    console.log(`🔧 Corrigindo ${char.name}: ${char.rarity} → ${correctRarity} (${char.popularity.toLocaleString()} favoritos)`);
+                    char.rarity = correctRarity;
+                    fixed++;
+                }
+            }
+        });
+        
+        if (fixed > 0) {
+            console.log(`✅ Corrigidas ${fixed} inconsistências de raridade`);
+            saveInventory();
+            renderGrid(inventory);
+        } else {
+            console.log('✅ Nenhuma inconsistência encontrada');
+        }
     }
 
     function createCard(char, index) {
@@ -176,8 +228,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (char.quantity > 1) quantityBadge = `<div class="card-quantity">×${char.quantity}</div>`;
 
         const popularityText = typeof char.popularity === 'number'
-            ? char.popularity.toLocaleString('en-US')
+            ? char.popularity.toLocaleString('pt-BR')
             : '—';
+
+        // Verificar se está favoritado
+        const isFavorited = checkIfFavorited(char);
+        const favoriteHeart = isFavorited ? '<div class="favorite-heart">💖</div>' : '';
 
         card.innerHTML = `
             <div class="card-image-container">
@@ -185,8 +241,9 @@ document.addEventListener('DOMContentLoaded', () => {
                      alt="${char.name}" 
                      class="card-image" 
                      loading="lazy" 
-                     onerror="this.src='https://via.placeholder.com/280x392/1a1b23/6366f1?text=No+Image'">
+                     onerror="this.src='https://via.placeholder.com/280x392/1a1b23/6366f1?text=Sem+Imagem'">
                 <div class="card-rarity-glow"></div>
+                ${favoriteHeart}
                 ${quantityBadge}
             </div>
             <div class="card-info">
@@ -240,8 +297,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
                 if (card.matches(':hover')) card.style.transform = 'translateY(-10px) scale(1.02)';
                 else card.style.transform = 'translateY(0) scale(1)';
+                
+                // Abrir modal com detalhes do personagem
+                if (window.openCharacterModal) {
+                    window.openCharacterModal(char);
+                } else {
+                    showCardInteraction(char);
+                }
             }, 150);
-            showCardInteraction(char);
         });
 
         card.addEventListener('keydown', (e) => {
@@ -256,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showCardInteraction(character) {
         const feedback = document.createElement('div');
-        feedback.textContent = `Viewing ${character.name}`;
+        feedback.textContent = `Visualizando ${character.name}`;
         feedback.style.cssText = `
             position: fixed;
             top: 20%;
@@ -331,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         saveInventory();
         renderGrid(inventory);
-        showToast(`Added ${character.name} to your collection!`);
+        showToast(`${character.name} adicionado à sua coleção!`);
     };
 
     function showToast(message) {
@@ -340,18 +403,18 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.textContent = message;
         toast.style.cssText = `
             position: fixed;
-            top: 100px;
-            right: 20px;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
             color: white;
             padding: 1rem 1.5rem;
             border-radius: 12px;
             font-weight: 500;
             box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
-            z-index: 1000;
+            z-index: 10000;
             opacity: 0;
-            transform: translateX(100%);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             font-family: 'Inter', sans-serif;
             border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
@@ -359,12 +422,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(toast);
         requestAnimationFrame(() => {
             toast.style.opacity = '1';
-            toast.style.transform = 'translateX(0)';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
         });
         setTimeout(() => {
             toast.style.opacity = '0';
-            toast.style.transform = 'translateX(100%)';
-            setTimeout(() => toast.parentNode && toast.parentNode.removeChild(toast), 300);
+            toast.style.transform = 'translateX(-50%) translateY(-100%)';
+            setTimeout(() => toast.parentNode && toast.parentNode.removeChild(toast), 400);
         }, 3000);
     }
 
@@ -425,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function addSearchFunctionality() {
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
-        searchInput.placeholder = 'Search your collection...';
+        searchInput.placeholder = 'Buscar na sua coleção...';
         searchInput.className = 'collection-search';
         // estilos já eram definidos inline; mantidos
         searchInput.style.cssText = `
@@ -472,6 +535,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // boot
     loadInventory();
+    
+    // Corrigir inconsistências de raridade
+    if (inventory.length > 0) {
+        fixRarityInconsistencies();
+    }
+    
     renderGrid(inventory);
     handleScroll();
     if (inventory.length > 0) addSearchFunctionality();
@@ -479,8 +548,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // NEW: enriquecer dados que faltam (popularidade/quote) direto da AniList
     enrichInventoryMissingInfo().catch(console.error);
 
-    console.log('Stock system initialized');
-    console.log('Current inventory:', inventory);
+    console.log('Sistema de coleção inicializado');
+    console.log('Inventário atual:', inventory);
     console.log('RARITIES config:', RARITIES);
 
     // garante que addToInventory continue criando o campo de busca no 1º item
@@ -494,4 +563,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 100);
         }
     };
+
+    // Função para atualizar a interface quando favoritos mudarem
+    window.updateStockFavorites = function() {
+        loadInventory();
+        renderGrid(inventory);
+    };
+
+    // Escutar mudanças nos favoritos para atualizar a interface
+    window.addEventListener('favoritesChanged', () => {
+        setTimeout(() => {
+            renderGrid(inventory);
+        }, 100);
+    });
+
+    // Recarregar favorites quando a página for focada (para sincronizar entre abas)
+    window.addEventListener('focus', () => {
+        renderGrid(inventory);
+    });
 });
