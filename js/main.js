@@ -286,6 +286,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const rarityInfo = getRarityInfo(character.rarity);
         const glowColor = rarityInfo.color; // Usar cor sólida para o glow principal
         
+        // Tocar som de revelação no momento exato da revelação
+        revealSound.currentTime = 0;
+        revealSound.play().catch(err => console.log("Som de revelação bloqueado pelo navegador:", err));
+        
         cardElement.innerHTML = `<img src="${character.image}" alt="${character.name}" onerror="this.src='https://via.placeholder.com/280x400/1a1a2e/a33bff?text=Sem+Imagem'">`;
         gsap.set(cardElement, { x: 0, y: 0, rotation: 0, scale: 1.5, zIndex: 100 });
 

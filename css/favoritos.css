@@ -7,7 +7,7 @@
     padding: 1rem 0;
 }
 
-/* Cards de favoritos mais compactos para mobile */
+/* ========== CARDS LEGADOS (MANTIDOS PARA COMPATIBILIDADE) ========== */
 .favorite-card {
     position: relative;
     background: var(--bg-card);
@@ -623,5 +623,392 @@
     .gallery-image {
         width: 85px;
         height: 110px;
+    }
+}
+
+/* ========== ESTILOS MELHORADOS PARA COMPACT-CARDS NOS FAVORITOS ========== */
+
+/* Override para melhorar os compact-cards quando usados na página de favoritos */
+.favorites-grid.compact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.2rem;
+    padding: 1rem 0;
+    animation: fadeInGrid 0.6s ease-out;
+}
+
+@keyframes fadeInGrid {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Cards de favoritos com design melhorado */
+.favorites-grid .compact-card {
+    background: linear-gradient(145deg, var(--bg-card), rgba(255, 255, 255, 0.02));
+    border-radius: 16px;
+    border: 2px solid transparent;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 4px 20px -5px rgba(0, 0, 0, 0.3),
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transform-style: preserve-3d;
+}
+
+/* Efeito de brilho sutil no hover */
+.favorites-grid .compact-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transition: left 0.6s ease;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.favorites-grid .compact-card:hover::before {
+    left: 100%;
+}
+
+.favorites-grid .compact-card:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 
+        0 20px 40px -10px rgba(0, 0, 0, 0.4),
+        0 8px 20px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.favorites-grid .compact-card:active {
+    transform: translateY(-4px) scale(0.98);
+    transition: transform 0.15s ease;
+}
+
+/* Container da imagem melhorado */
+.favorites-grid .compact-image-container {
+    background: linear-gradient(135deg, #1a1b23, #242530);
+    border-radius: 14px 14px 0 0;
+}
+
+.favorites-grid .compact-image {
+    filter: brightness(0.95) contrast(1.05);
+    transition: all 0.4s ease;
+}
+
+.favorites-grid .compact-card:hover .compact-image {
+    transform: scale(1.08);
+    filter: brightness(1.1) contrast(1.1);
+}
+
+/* Informações do card melhoradas */
+.favorites-grid .compact-info {
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(0, 0, 0, 0.7) 30%,
+        rgba(0, 0, 0, 0.9) 100%
+    );
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.8rem 0.6rem;
+}
+
+.favorites-grid .compact-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: #ffffff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    letter-spacing: 0.3px;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+.favorites-grid .compact-rarity {
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    gap: 0.3rem;
+}
+
+.favorites-grid .compact-rarity-emoji {
+    font-size: 0.75rem;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+/* Badges melhorados */
+.favorites-grid .compact-quantity {
+    background: linear-gradient(135deg, #1a1b23, #2a2b3a);
+    color: #ffffff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    top: 8px;
+    right: 8px;
+}
+
+.favorites-grid .compact-favorite {
+    width: 26px;
+    height: 26px;
+    background: linear-gradient(135deg, #ff1744, #e91e63);
+    border-radius: 50%;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    box-shadow: 
+        0 3px 10px rgba(255, 23, 68, 0.4),
+        0 1px 3px rgba(0, 0, 0, 0.3);
+    animation: favoriteGlow 2s ease-in-out infinite;
+    top: 8px;
+    left: 8px;
+}
+
+@keyframes favoriteGlow {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 
+            0 3px 10px rgba(255, 23, 68, 0.4),
+            0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 
+            0 4px 15px rgba(255, 23, 68, 0.6),
+            0 2px 5px rgba(0, 0, 0, 0.4);
+    }
+}
+
+/* Estados especiais para raridades */
+.favorites-grid .compact-card.rarity-Special {
+    border-color: rgba(34, 211, 238, 0.3);
+    box-shadow: 
+        0 4px 20px -5px rgba(34, 211, 238, 0.2),
+        0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.favorites-grid .compact-card.rarity-Special:hover {
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 
+        0 20px 40px -10px rgba(34, 211, 238, 0.3),
+        0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.favorites-grid .compact-card.rarity-Mythic {
+    border-color: rgba(239, 68, 68, 0.3);
+    box-shadow: 
+        0 4px 20px -5px rgba(239, 68, 68, 0.2),
+        0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.favorites-grid .compact-card.rarity-Mythic:hover {
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 
+        0 20px 40px -10px rgba(239, 68, 68, 0.3),
+        0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.favorites-grid .compact-card.rarity-Legendary {
+    border-color: rgba(245, 158, 11, 0.3);
+    box-shadow: 
+        0 4px 20px -5px rgba(245, 158, 11, 0.2),
+        0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.favorites-grid .compact-card.rarity-Legendary:hover {
+    border-color: rgba(245, 158, 11, 0.5);
+    box-shadow: 
+        0 20px 40px -10px rgba(245, 158, 11, 0.3),
+        0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ========== RESPONSIVIDADE MELHORADA PARA COMPACT-CARDS ========== */
+
+@media (max-width: 768px) {
+    .favorites-grid.compact-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+        padding: 0.8rem 0;
+    }
+    
+    .favorites-grid .compact-card {
+        border-radius: 14px;
+    }
+    
+    .favorites-grid .compact-name {
+        font-size: 0.8rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .favorites-grid .compact-rarity {
+        font-size: 0.6rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .favorites-grid .compact-quantity {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+        top: 6px;
+        right: 6px;
+    }
+    
+    .favorites-grid .compact-favorite {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+        top: 6px;
+        left: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .favorites-grid.compact-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.8rem;
+        padding: 0.6rem 0;
+    }
+    
+    .favorites-grid .compact-card {
+        border-radius: 12px;
+    }
+    
+    .favorites-grid .compact-info {
+        padding: 0.6rem 0.5rem;
+    }
+    
+    .favorites-grid .compact-name {
+        font-size: 0.75rem;
+        margin-bottom: 0.25rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+    
+    .favorites-grid .compact-rarity {
+        font-size: 0.55rem;
+        padding: 0.2rem 0.4rem;
+        gap: 0.2rem;
+    }
+    
+    .favorites-grid .compact-rarity-emoji {
+        font-size: 0.7rem;
+    }
+    
+    .favorites-grid .compact-quantity {
+        font-size: 0.6rem;
+        padding: 0.15rem 0.35rem;
+        top: 5px;
+        right: 5px;
+        border-radius: 10px;
+    }
+    
+    .favorites-grid .compact-favorite {
+        width: 22px;
+        height: 22px;
+        font-size: 9px;
+        top: 5px;
+        left: 5px;
+    }
+    
+    .favorites-grid .compact-card:hover {
+        transform: translateY(-4px) scale(1.02);
+    }
+}
+
+@media (max-width: 360px) {
+    .favorites-grid.compact-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.6rem;
+        padding: 0.5rem 0;
+    }
+    
+    .favorites-grid .compact-card {
+        border-radius: 10px;
+    }
+    
+    .favorites-grid .compact-info {
+        padding: 0.5rem 0.4rem;
+    }
+    
+    .favorites-grid .compact-name {
+        font-size: 0.7rem;
+        margin-bottom: 0.2rem;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+    }
+    
+    .favorites-grid .compact-rarity {
+        font-size: 0.5rem;
+        padding: 0.15rem 0.3rem;
+        border-radius: 15px;
+    }
+    
+    .favorites-grid .compact-rarity-emoji {
+        font-size: 0.6rem;
+    }
+    
+    .favorites-grid .compact-quantity {
+        font-size: 0.55rem;
+        padding: 0.1rem 0.3rem;
+        top: 4px;
+        right: 4px;
+        border-radius: 8px;
+    }
+    
+    .favorites-grid .compact-favorite {
+        width: 20px;
+        height: 20px;
+        font-size: 8px;
+        top: 4px;
+        left: 4px;
+    }
+    
+    .favorites-grid .compact-card:hover {
+        transform: translateY(-2px) scale(1.01);
+    }
+}
+
+/* Melhorias para telas muito pequenas */
+@media (max-width: 320px) {
+    .favorites-grid.compact-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .favorites-grid .compact-name {
+        font-size: 0.65rem;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+    }
+    
+    .favorites-grid .compact-rarity {
+        font-size: 0.45rem;
+        padding: 0.1rem 0.25rem;
     }
 }
