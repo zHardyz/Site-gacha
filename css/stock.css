@@ -756,7 +756,7 @@ body {
     }
 }
 
-/* Loading Animation */
+/* Animação de Loading - Apenas para stock-card antigo */
 @keyframes card-fade-in {
     0% {
         opacity: 0;
@@ -778,6 +778,11 @@ body {
 
 .stock-card:nth-child(even) {
     animation-delay: 0.2s;
+}
+
+/* Garantir que compact-cards não tenham animação CSS conflitante */
+.compact-card {
+    animation: none !important;
 }
 
 .stock-card.clicking {
@@ -858,7 +863,336 @@ body {
     opacity: .7;
 }
 .card-quote::after {
-    content: "”";
+    content: """;
     margin-left: .15rem;
     opacity: .7;
+}
+
+/* ========== FILTROS SIMPLES E CARDS COMPACTOS ========== */
+
+/* Filtros Simples */
+.simple-filters {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    backdrop-filter: blur(10px);
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.filter-row:last-child {
+    margin-bottom: 0;
+}
+
+.rarity-filter-select,
+.sort-filter-select {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.rarity-filter-select:focus,
+.sort-filter-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.rarity-filter-select option,
+.sort-filter-select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0.5rem;
+}
+
+.toggle-filter {
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.toggle-filter:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+.toggle-filter.active {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
+}
+
+.results-count {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+    margin-left: auto;
+}
+
+.results-count span {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Grid Compacto */
+.compact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+/* Cards Compactos */
+.compact-card {
+    position: relative;
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    aspect-ratio: 3/4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    opacity: 1 !important; /* Garantir que sempre estejam visíveis */
+}
+
+.compact-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.compact-card:active {
+    transform: translateY(-2px) scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+.compact-image-container {
+    position: relative;
+    width: 100%;
+    height: 70%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1a1b23, #242530);
+}
+
+.compact-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    transition: transform 0.3s ease;
+}
+
+.compact-card:hover .compact-image {
+    transform: scale(1.05);
+}
+
+.compact-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7), transparent);
+    color: white;
+}
+
+.compact-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.compact-rarity {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.compact-rarity-emoji {
+    font-size: 0.7rem;
+    line-height: 1;
+}
+
+/* Badges e Indicadores */
+.compact-quantity {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.compact-favorite {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff6b9d;
+    font-size: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Botão de Limpeza */
+.clear-btn {
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-family: inherit;
+}
+
+.clear-btn:hover {
+    background: var(--accent);
+    color: white;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .compact-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.6rem;
+    }
+    
+    .filter-row {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .rarity-filter-select,
+    .sort-filter-select {
+        min-width: 140px;
+    }
+    
+    .compact-name {
+        font-size: 0.7rem;
+    }
+    
+    .compact-rarity {
+        font-size: 0.6rem;
+        padding: 0.15rem 0.3rem;
+    }
+    
+    .compact-quantity {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.3rem;
+        top: 4px;
+        right: 4px;
+    }
+    
+    .compact-favorite {
+        width: 18px;
+        height: 18px;
+        font-size: 9px;
+        top: 4px;
+        left: 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .compact-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .simple-filters {
+        padding: 0.75rem;
+    }
+    
+    .filter-row {
+        gap: 0.5rem;
+    }
+    
+    .rarity-filter-select,
+    .sort-filter-select,
+    .toggle-filter {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    .results-count {
+        font-size: 0.75rem;
+        text-align: center;
+        width: 100%;
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+    
+    .compact-name {
+        font-size: 0.65rem;
+    }
+    
+    .compact-info {
+        padding: 0.4rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .compact-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 0.4rem;
+    }
+    
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .rarity-filter-select,
+    .sort-filter-select {
+        width: 100%;
+        min-width: unset;
+    }
 }

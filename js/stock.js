@@ -1,9 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     const DOM = {
-        grid: document.querySelector('.stock-grid'),
+        grid: document.querySelector('.compact-grid'),
         emptyState: document.querySelector('.empty-state'),
+        noResultsState: document.querySelector('.no-results-state'),
         totalCards: document.getElementById('total-cards'),
         uniqueCards: document.getElementById('unique-cards'),
+        showingCount: document.getElementById('showing-count'),
+        totalCount: document.getElementById('total-count'),
     };
 
     // === AniList ===
@@ -14,6 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let inventory = [];
     let favorites = [];
+    let currentFilter = {
+        rarity: 'all',
+        sort: 'rarity',
+        favoritesOnly: false,
+        duplicatesOnly: false,
+        searchQuery: ''
+    };
 
     // Função para atualizar imagens dos personagens antigos
     function updateCharacterImages() {
@@ -53,16 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função para verificar se um personagem está favoritado
     function checkIfFavorited(character) {
-        try {
-            const stored = localStorage.getItem('gacha.favorites.v1');
-            favorites = stored ? JSON.parse(stored) : [];
-            return favorites.some(fav => 
-                fav.name === character.name && 
-                fav.anime === character.anime
-            );
-        } catch (e) {
-            return false;
+        if (window.favoritesSystem) {
+            return window.favoritesSystem.isFavorited(character);
         }
+        return false;
     }
 
     function loadInventory() {
@@ -245,94 +249,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function createCard(char, index) {
+    function createCompactCard(char, index) {
         normalizeRarityLabel(char);
         const card = document.createElement('div');
-        card.className = `stock-card rarity-${char.rarity}`;
+        card.className = `compact-card rarity-${char.rarity}`;
         card.tabIndex = 0;
-        card.style.animationDelay = `${index * 0.05}s`;
 
         const rarity = getRarityInfo(char.rarity);
+        
+        // Badges
         let quantityBadge = '';
-        if (char.quantity > 1) quantityBadge = `<div class="card-quantity">×${char.quantity}</div>`;
-
-        const popularityText = typeof char.popularity === 'number'
-            ? char.popularity.toLocaleString('pt-BR')
-            : '—';
+        if ((char.quantity || 1) > 1) {
+            quantityBadge = `<div class="compact-quantity">×${char.quantity}</div>`;
+        }
 
         // Verificar se está favoritado
         const isFavorited = checkIfFavorited(char);
-        const favoriteHeart = isFavorited ? '<div class="favorite-heart">💖</div>' : '';
+        const favoriteHeart = isFavorited ? '<div class="compact-favorite">💖</div>' : '';
 
         card.innerHTML = `
-            <div class="card-image-container">
+            <div class="compact-image-container">
                 <img src="${char.image}" 
                      alt="${char.name}" 
-                     class="card-image" 
+                     class="compact-image" 
                      loading="lazy" 
-                     onerror="this.src='https://via.placeholder.com/280x392/1a1b23/6366f1?text=Sem+Imagem'">
-                <div class="card-rarity-glow"></div>
+                     onerror="this.src='https://via.placeholder.com/200x280/1a1b23/6366f1?text=Sem+Imagem'">
                 ${favoriteHeart}
                 ${quantityBadge}
             </div>
-            <div class="card-info">
-                <h3 class="card-name">${char.name}</h3>
-                <p class="card-anime">${char.anime || ''}</p>
-
-                <div class="card-meta">
-                    <div class="card-popularity" title="AniList favourites">
-                        <span class="pop-emoji">🔥</span>
-                        <span>${popularityText}</span>
-                    </div>
-                    <div class="card-rarity rarity-${char.rarity}" style="background: linear-gradient(135deg, ${rarity.color}, ${rarity.color}99) !important; border: 2px solid ${rarity.color} !important;">
-                        <span style="color: ${rarity.color};">${rarity.emoji}</span>
-                        <span>${rarity.name || char.rarity}</span>
-                    </div>
+            <div class="compact-info">
+                <div class="compact-name" title="${char.name}">${char.name}</div>
+                <div class="compact-rarity rarity-${char.rarity}">
+                    <span class="compact-rarity-emoji">${rarity.emoji}</span>
+                    <span>${rarity.name || char.rarity}</span>
                 </div>
-
-                ${char.quote ? `<div class="card-quote">${char.quote}</div>` : ''}
             </div>
         `;
 
-        const cardRarityElement = card.querySelector('.card-rarity');
-        if (cardRarityElement) {
-            // Usar a função global para aplicar estilos
-            applyRarityStyles(cardRarityElement, char.rarity);
-            const emojiSpan = cardRarityElement.querySelector('span:first-child');
-            if (emojiSpan) emojiSpan.style.setProperty('color', '#ffffff', 'important');
-        }
+        // Aplicar cores da raridade
         card.style.setProperty('border-color', rarity.color, 'important');
+        
+        // Aplicar estilos da raridade no badge
+        const rarityElement = card.querySelector('.compact-rarity');
+        if (rarityElement) {
+            applyRarityStyles(rarityElement, char.rarity);
+        }
 
-        card.addEventListener('mouseenter', () => {
-            if (!card.classList.contains('clicking')) {
-                card.style.transform = 'translateY(-10px) scale(1.02)';
-                card.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-            }
-        });
-        card.addEventListener('mouseleave', () => {
-            if (!card.classList.contains('clicking')) {
-                card.style.transform = 'translateY(0) scale(1)';
-                card.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-            }
-        });
+        // Event listeners
         card.addEventListener('click', (e) => {
             e.preventDefault();
-            card.classList.add('clicking');
-            card.style.transform = 'translateY(-5px) scale(0.98)';
-            card.style.transition = 'transform 0.1s ease';
-            setTimeout(() => {
-                card.classList.remove('clicking');
-                card.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                if (card.matches(':hover')) card.style.transform = 'translateY(-10px) scale(1.02)';
-                else card.style.transform = 'translateY(0) scale(1)';
-                
-                // Abrir modal com detalhes do personagem
-                if (window.openCharacterModal) {
-                    window.openCharacterModal(char);
-                } else {
-                    showCardInteraction(char);
-                }
-            }, 150);
+            
+            // Abrir modal com detalhes do personagem
+            if (window.openCharacterModal) {
+                window.openCharacterModal(char);
+            } else {
+                showCardInteraction(char);
+            }
         });
 
         card.addEventListener('keydown', (e) => {
@@ -380,31 +352,172 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2000);
     }
 
+    // === SISTEMA DE FILTROS SIMPLES ===
+    
+    function applyFilters() {
+        let filtered = [...inventory];
+        
+        // Filtro por raridade
+        if (currentFilter.rarity !== 'all') {
+            filtered = filtered.filter(item => item.rarity === currentFilter.rarity);
+        }
+        
+        // Filtro apenas favoritos
+        if (currentFilter.favoritesOnly) {
+            filtered = filtered.filter(item => checkIfFavorited(item));
+        }
+        
+        // Filtro apenas duplicatas
+        if (currentFilter.duplicatesOnly) {
+            filtered = filtered.filter(item => (item.quantity || 1) > 1);
+        }
+        
+        // Filtro por busca
+        if (currentFilter.searchQuery) {
+            const query = currentFilter.searchQuery.toLowerCase();
+            filtered = filtered.filter(item => 
+                item.name.toLowerCase().includes(query) ||
+                (item.anime || '').toLowerCase().includes(query) ||
+                (item.rarity || '').toLowerCase().includes(query)
+            );
+        }
+        
+        // Aplicar ordenação
+        filtered = applySorting(filtered);
+        
+        return filtered;
+    }
+    
+    function applySorting(items) {
+        return items.sort((a, b) => {
+            switch (currentFilter.sort) {
+                case 'rarity':
+                    const rarityOrderA = getRarityInfo(a.rarity)?.order ?? 99;
+                    const rarityOrderB = getRarityInfo(b.rarity)?.order ?? 99;
+                    if (rarityOrderA !== rarityOrderB) return rarityOrderB - rarityOrderA;
+                    return a.name.localeCompare(b.name);
+                    
+                case 'name':
+                    return a.name.localeCompare(b.name);
+                    
+                case 'quantity':
+                    const qtyA = a.quantity || 1;
+                    const qtyB = b.quantity || 1;
+                    if (qtyA !== qtyB) return qtyB - qtyA;
+                    return a.name.localeCompare(b.name);
+                    
+                case 'popularity':
+                    const popA = a.popularity || 0;
+                    const popB = b.popularity || 0;
+                    if (popA !== popB) return popB - popA;
+                    return a.name.localeCompare(b.name);
+                    
+                default:
+                    return 0;
+            }
+        });
+    }
+    
+    function updateCounts(filteredItems) {
+        if (DOM.showingCount) DOM.showingCount.textContent = filteredItems.length;
+        if (DOM.totalCount) DOM.totalCount.textContent = inventory.length;
+    }
+
     function renderGrid(items) {
-        if (items.length === 0) {
-            DOM.grid.style.display = 'none';
-            DOM.emptyState.style.display = 'block';
+        const grid = DOM.grid;
+        const emptyState = DOM.emptyState;
+        const noResultsState = DOM.noResultsState;
+        
+        // Se inventário está vazio
+        if (inventory.length === 0) {
+            grid.style.display = 'none';
+            emptyState.style.display = 'block';
+            noResultsState.style.display = 'none';
             return;
         }
-        DOM.grid.style.display = 'grid';
-        DOM.emptyState.style.display = 'none';
+        
+        // Se não há resultados após filtros
+        if (items.length === 0) {
+            grid.style.display = 'none';
+            emptyState.style.display = 'none';
+            noResultsState.style.display = 'block';
+            return;
+        }
+        
+        // Mostrar grid com resultados
+        grid.style.display = 'grid';
+        emptyState.style.display = 'none';
+        noResultsState.style.display = 'none';
 
-        items.sort((a, b) => {
-            const rarityOrderA = getRarityInfo(a.rarity)?.order ?? 99;
-            const rarityOrderB = getRarityInfo(b.rarity)?.order ?? 99;
-            if (rarityOrderA !== rarityOrderB) return rarityOrderB - rarityOrderA;
-            return a.name.localeCompare(b.name);
+        // Criar cards
+        const fragment = document.createDocumentFragment();
+        items.forEach((item, index) => {
+            const card = createCompactCard(item, index);
+            // Garantir opacidade sempre 1
+            card.style.opacity = '1';
+            fragment.appendChild(card);
         });
 
-        const fragment = document.createDocumentFragment();
-        items.forEach((item, index) => fragment.appendChild(createCard(item, index)));
+        grid.innerHTML = '';
+        grid.appendChild(fragment);
 
-        DOM.grid.innerHTML = '';
-        DOM.grid.appendChild(fragment);
-
+        // Animação com GSAP se disponível
         if (typeof gsap !== 'undefined') {
-            gsap.from('.stock-card', { duration: 0.6, y: 50, opacity: 0, stagger: 0.05, ease: 'power2.out' });
+            // Primeiro garantir que todos os cards estão visíveis
+            gsap.set('.compact-card', { opacity: 1, y: 0 });
+            
+            // Depois aplicar a animação de entrada
+            gsap.fromTo('.compact-card', 
+                { 
+                    opacity: 0, 
+                    y: 30,
+                    scale: 0.9
+                },
+                { 
+                    duration: 0.4, 
+                    opacity: 1, 
+                    y: 0,
+                    scale: 1,
+                    stagger: 0.02, 
+                    ease: 'power2.out',
+                    clearProps: 'all' // Limpa todas as propriedades após a animação
+                }
+            );
         }
+        
+        updateCounts(items);
+    }
+
+    function clearFilters() {
+        currentFilter = {
+            rarity: 'all',
+            sort: 'rarity',
+            favoritesOnly: false,
+            duplicatesOnly: false,
+            searchQuery: ''
+        };
+        
+        // Resetar UI
+        const raritySelect = document.getElementById('rarity-filter');
+        const sortSelect = document.getElementById('sort-filter');
+        const favoritesBtn = document.getElementById('favorites-toggle');
+        const duplicatesBtn = document.getElementById('duplicates-toggle');
+        const searchInput = document.querySelector('.collection-search');
+        
+        if (raritySelect) raritySelect.value = 'all';
+        if (sortSelect) sortSelect.value = 'rarity';
+        if (favoritesBtn) favoritesBtn.classList.remove('active');
+        if (duplicatesBtn) duplicatesBtn.classList.remove('active');
+        if (searchInput) searchInput.value = '';
+        
+        // Re-renderizar
+        const filtered = applyFilters();
+        renderGrid(filtered);
+    }
+
+    function refreshDisplay() {
+        const filtered = applyFilters();
+        renderGrid(filtered);
     }
 
     window.addToInventory = function(character) {
@@ -421,7 +534,10 @@ document.addEventListener('DOMContentLoaded', () => {
             inventory.push(character);
         }
         saveInventory();
-        renderGrid(inventory);
+        
+        // Re-renderizar com filtros atuais
+        refreshDisplay();
+        
         showToast(`${character.name} adicionado à sua coleção!`);
     };
 
@@ -561,7 +677,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // boot
+    // === EVENT LISTENERS SIMPLES ===
+    
+    function setupFilterEventListeners() {
+        // Filtro de raridade
+        const raritySelect = document.getElementById('rarity-filter');
+        if (raritySelect) {
+            raritySelect.addEventListener('change', (e) => {
+                currentFilter.rarity = e.target.value;
+                refreshDisplay();
+            });
+        }
+        
+        // Filtro de ordenação
+        const sortSelect = document.getElementById('sort-filter');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                currentFilter.sort = e.target.value;
+                refreshDisplay();
+            });
+        }
+        
+        // Toggle favoritos
+        const favoritesBtn = document.getElementById('favorites-toggle');
+        if (favoritesBtn) {
+            favoritesBtn.addEventListener('click', () => {
+                currentFilter.favoritesOnly = !currentFilter.favoritesOnly;
+                favoritesBtn.classList.toggle('active', currentFilter.favoritesOnly);
+                refreshDisplay();
+            });
+        }
+        
+        // Toggle duplicatas
+        const duplicatesBtn = document.getElementById('duplicates-toggle');
+        if (duplicatesBtn) {
+            duplicatesBtn.addEventListener('click', () => {
+                currentFilter.duplicatesOnly = !currentFilter.duplicatesOnly;
+                duplicatesBtn.classList.toggle('active', currentFilter.duplicatesOnly);
+                refreshDisplay();
+            });
+        }
+        
+        // Tornar função global para uso no HTML
+        window.clearFilters = clearFilters;
+    }
+    
+    function updateSearchFunctionality() {
+        const searchInput = document.querySelector('.collection-search');
+        if (searchInput) {
+            // Atualizar listener de busca
+            searchInput.addEventListener('input', (e) => {
+                currentFilter.searchQuery = e.target.value.toLowerCase().trim();
+                refreshDisplay();
+            });
+        }
+    }
+
+    // === INICIALIZAÇÃO ===
     loadInventory();
     
     // Corrigir inconsistências de raridade
@@ -569,58 +741,51 @@ document.addEventListener('DOMContentLoaded', () => {
         fixRarityInconsistencies();
     }
     
-    renderGrid(inventory);
+    // Renderizar grid inicial
+    refreshDisplay();
     handleScroll();
-    if (inventory.length > 0) addSearchFunctionality();
+    
+    // Configurar funcionalidades
+    if (inventory.length > 0) {
+        addSearchFunctionality();
+    }
+    updateSearchFunctionality();
+    setupFilterEventListeners();
 
     // Aguardar o character pool estar pronto para atualizar imagens antigas
     const checkPoolAndUpdate = () => {
         if (window.characterPoolManager && window.characterPoolManager.isInitialized) {
             updateCharacterImages();
-            renderGrid(inventory); // Re-renderizar com imagens atualizadas
+            refreshDisplay(); // Re-renderizar com imagens atualizadas
         } else {
             setTimeout(checkPoolAndUpdate, 500);
         }
     };
     checkPoolAndUpdate();
 
-    // NEW: enriquecer dados que faltam (popularidade/quote) direto da AniList
+    // Enriquecer dados que faltam (popularidade/quote) direto da AniList
     enrichInventoryMissingInfo().catch(console.error);
 
-    console.log('Sistema de coleção inicializado');
-    console.log('Inventário atual:', inventory);
-    console.log('RARITIES config:', RARITIES);
-
-    // garante que addToInventory continue criando o campo de busca no 1º item
+    // Garantir que addToInventory crie o campo de busca no primeiro item
     const originalAddToInventory = window.addToInventory;
     window.addToInventory = function(character) {
         const hadItems = inventory.length > 0;
         originalAddToInventory(character);
         if (!hadItems && inventory.length === 1) {
             setTimeout(() => {
-                if (!document.querySelector('.collection-search')) addSearchFunctionality();
+                if (!document.querySelector('.collection-search')) {
+                    addSearchFunctionality();
+                    updateSearchFunctionality();
+                }
             }, 100);
         }
     };
 
-    // Função para atualizar a interface quando favoritos mudarem
-    window.updateStockFavorites = function() {
-        loadInventory();
-        renderGrid(inventory);
-    };
-
     // Escutar mudanças nos favoritos para atualizar a interface
     window.addEventListener('favoritesChanged', () => {
-        setTimeout(() => {
-            renderGrid(inventory);
-        }, 100);
+        setTimeout(refreshDisplay, 50);
     });
 
-    // Recarregar favorites quando a página for focada (para sincronizar entre abas)
-    window.addEventListener('focus', () => {
-        // Apenas recarregar se estamos na página de stock
-        if (window.location.pathname.includes('stock.html')) {
-            renderGrid(inventory);
-        }
-    });
+    console.log('✅ Sistema de coleção simplificado inicializado');
+    console.log('📊 Inventário atual:', inventory.length, 'itens');
 });

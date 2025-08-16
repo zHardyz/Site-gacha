@@ -128,11 +128,12 @@ class CharacterModal {
         const heartIcon = favBtn.querySelector('.heart-icon');
         const btnText = favBtn.querySelector('.btn-text');
         
-        const isFavorited = window.favoritesManager && window.favoritesManager.isFavorited(this.currentCharacter);
+        // Usar o novo sistema de favoritos
+        const isFavorited = window.favoritesSystem && window.favoritesSystem.isFavorited(this.currentCharacter);
         
         if (isFavorited) {
             favBtn.classList.add('favorited');
-            if (heartIcon) heartIcon.textContent = '❤️';
+            if (heartIcon) heartIcon.textContent = '💖';
             if (btnText) btnText.textContent = 'Favoritado';
             favBtn.title = 'Remover dos favoritos';
         } else {
@@ -363,48 +364,42 @@ class CharacterModal {
 
 
     toggleFavorite() {
-        if (!this.currentCharacter || !window.favoritesManager) return;
+        if (!this.currentCharacter) return;
         
         const favBtn = document.getElementById('modal-favorite-btn');
         
-        // Animação de clique primeiro
-        if (typeof gsap !== 'undefined') {
-            gsap.to(favBtn, {
-                scale: 0.95,
-                duration: 0.1,
-                ease: 'power2.out',
-                onComplete: () => {
-                    // Aplicar mudança no meio da animação
-                    window.favoritesManager.toggleFavorite(this.currentCharacter);
-                    this.updateFavoriteButton();
-                    
-                    // Atualizar interface do stock se existir
-                    if (window.updateStockFavorites) {
-                        window.updateStockFavorites();
+        // Usar o novo sistema de favoritos
+        if (window.favoritesSystem) {
+            // Animação de clique primeiro
+            if (typeof gsap !== 'undefined') {
+                gsap.to(favBtn, {
+                    scale: 0.95,
+                    duration: 0.1,
+                    ease: 'power2.out',
+                    onComplete: () => {
+                        // Aplicar mudança no meio da animação
+                        window.favoritesSystem.toggleFavorite(this.currentCharacter);
+                        this.updateFavoriteButton();
+                        
+                        // Animação de volta com bounce
+                        gsap.to(favBtn, {
+                            scale: 1.05,
+                            duration: 0.15,
+                            ease: 'back.out(1.7)',
+                            onComplete: () => {
+                                gsap.to(favBtn, {
+                                    scale: 1,
+                                    duration: 0.1,
+                                    ease: 'power2.out'
+                                });
+                            }
+                        });
                     }
-                    
-                    // Animação de volta com bounce
-                    gsap.to(favBtn, {
-                        scale: 1.05,
-                        duration: 0.15,
-                        ease: 'back.out(1.7)',
-                        onComplete: () => {
-                            gsap.to(favBtn, {
-                                scale: 1,
-                                duration: 0.1,
-                                ease: 'power2.out'
-                            });
-                        }
-                    });
-                }
-            });
-        } else {
-            // Fallback sem GSAP
-            window.favoritesManager.toggleFavorite(this.currentCharacter);
-            this.updateFavoriteButton();
-            
-            if (window.updateStockFavorites) {
-                window.updateStockFavorites();
+                });
+            } else {
+                // Fallback sem GSAP
+                window.favoritesSystem.toggleFavorite(this.currentCharacter);
+                this.updateFavoriteButton();
             }
         }
     }

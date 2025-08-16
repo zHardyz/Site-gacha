@@ -338,6 +338,134 @@ const storageKeys = {
 - Peso maior para personagens não invocados recentemente
 - Filtros por tempo desde último summon
 
+## 💾 Gerenciamento de Dados e Reset
+
+### 📋 Como o Salvamento Funciona
+
+O sistema gacha salva **APENAS LOCALMENTE** no navegador de cada usuário:
+
+```javascript
+// Localização dos dados (localStorage do navegador)
+localStorage['gacha.inventory.v1']    // Personagens da coleção
+localStorage['gacha.favorites.v2']    // Personagens favoritos
+localStorage['spinsLeft']             // Invocações restantes
+localStorage['gacha.character.pool.v4'] // Cache de personagens da API
+```
+
+### ⚠️ **IMPORTANTE: Dados por Usuário/Navegador**
+
+- ✅ **Individual:** Cada usuário tem sua própria coleção
+- ✅ **Local:** Dados ficam apenas no navegador de cada pessoa
+- ✅ **Privado:** Não há servidor central ou compartilhamento
+- ❌ **Não sincroniza:** Entre dispositivos ou navegadores diferentes
+
+### 🗑️ Como Resetar o Stock/Coleção
+
+#### **Método 1: Console do Navegador (Recomendado)**
+
+1. Abra as **Ferramentas do Desenvolvedor** (F12)
+2. Vá na aba **Console**
+3. Execute um dos comandos:
+
+```javascript
+// Reset APENAS do inventário/coleção
+devTools.resetInventory()
+
+// Reset APENAS dos favoritos
+localStorage.removeItem('gacha.favorites.v2')
+
+// Reset APENAS dos spins
+devTools.resetSpins()
+
+// Reset TOTAL (apaga tudo)
+devTools.resetAll()
+```
+
+#### **Método 2: Limpeza Manual Completa**
+
+```javascript
+// Limpar TODOS os dados do gacha
+localStorage.clear()
+// Depois recarregue a página (F5)
+```
+
+#### **Método 3: Seletivo por Categoria**
+
+```javascript
+// Apenas coleção (mantém favoritos e spins)
+localStorage.removeItem('gacha.inventory.v1')
+
+// Apenas favoritos (mantém coleção)
+localStorage.removeItem('gacha.favorites.v2')
+
+// Apenas cache de personagens (força atualização da API)
+localStorage.removeItem('gacha.character.pool.v4')
+
+// Resetar spins para máximo
+localStorage.removeItem('spinsLeft')
+localStorage.removeItem('resetTime')
+```
+
+### 🌐 Outros Usuários São Afetados?
+
+**❌ NÃO!** Cada usuário tem dados completamente separados:
+
+- **Usuário A:** Suas próprias cartas, favoritos, spins
+- **Usuário B:** Suas próprias cartas, favoritos, spins (diferentes do A)
+- **Reset individual:** Limpar seus dados **não afeta mais ninguém**
+
+### 🔧 Ferramentas de Debug Disponíveis
+
+Execute no console (F12) para gerenciar dados:
+
+```javascript
+// Ver informações dos dados salvos
+devTools.storage()  // Mostra tamanho de cada categoria
+
+// Exportar backup da coleção
+devTools.export()   // Copia backup para clipboard
+
+// Ver status dos favoritos
+favoritesDebug.stats()  // Quantidade e raridades
+
+// Limpar cache (força atualização de personagens)
+window.characterPoolManager.forceRefresh()
+```
+
+### 📤 Backup e Restauração
+
+```javascript
+// Criar backup completo
+const backup = devTools.export()
+// Cole o resultado em um arquivo .txt
+
+// Restaurar backup (cole o JSON do backup)
+devTools.import(backupJson)
+```
+
+### 🔄 Situações Comuns de Reset
+
+#### **Desenvolvimento/Teste:**
+```javascript
+devTools.resetInventory()  // Limpar para testar
+```
+
+#### **Dados Corrompidos:**
+```javascript
+devTools.resetAll()       // Reset total
+```
+
+#### **Quero Começar do Zero:**
+```javascript
+localStorage.clear()      // Apagar tudo
+```
+
+#### **Apenas Atualizar Personagens:**
+```javascript
+localStorage.removeItem('gacha.character.pool.v4')
+// Recarregar página
+```
+
 ## 🐛 Solução de Problemas
 
 ### ❌ Raridades Inconsistentes
