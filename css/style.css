@@ -23,9 +23,11 @@ body {
     background-color: var(--background);
     color: var(--text-primary);
     overflow-x: hidden;
+    overflow-y: auto; /* Garantir que overflow vertical seja controlado */
     background-image: radial-gradient(circle at top right, rgba(163, 59, 255, 0.2), transparent 40%),
                       radial-gradient(circle at bottom left, rgba(0, 229, 255, 0.2), transparent 40%);
     min-height: 100vh;
+    max-width: 100vw; /* Prevenir expansão horizontal */
 }
 
 /* Navbar Moderna e Padronizada */
@@ -196,6 +198,8 @@ main {
     justify-content: center;
     gap: 2rem;
     flex-grow: 1;
+    position: relative; /* Estabelecer contexto de contenção */
+    overflow: hidden;   /* Prevenir expansão de elementos filhos */
 }
 
 #carousel-container {
@@ -203,12 +207,14 @@ main {
     width: var(--card-width);
     height: var(--card-height);
     position: relative;
+    overflow: hidden; /* Previne expansão das animações */
 }
 
 .carousel {
     width: 100%;
     height: 100%;
     position: relative;
+    overflow: hidden; /* Garantir que elementos filhos não escapem */
 }
 
 .carousel-card {
@@ -242,6 +248,7 @@ main {
     border-radius: 50%;
     background-color: var(--accent);
     pointer-events: none;
+    transform-origin: center center; /* Garantir origem de transformação centralizada */
 }
 
 #summon-button {
@@ -542,7 +549,10 @@ main {
     
     /* Mostrar botão de menu mobile */
     .mobile-menu-toggle {
-        display: flex;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
     }
     
     /* Criar navbar mobile independente */

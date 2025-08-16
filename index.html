@@ -57,7 +57,7 @@
         </nav>
     </header>
     <div class="site-notice" id="site-notice">
-    <span>🚧 Isso ainda está em teste e seus personagens podem ser resetados.</span>
+    <span>🚧 Isso ainda está em teste e seus personagens podem ser resetados e espere bugs.</span>
     <button class="close-notice" onclick="document.getElementById('site-notice').style.display='none'">×</button>
 </div>
 
@@ -115,9 +115,18 @@
                     });
                 });
                 
-                // Fechar menu ao clicar fora dele
+                // Fechar menu ao clicar fora dele (mas não no summon button ou área do carrossel)
                 document.addEventListener('click', (e) => {
-                    if (!menuToggle.contains(e.target) && !navContainer.contains(e.target)) {
+                    const summonButton = document.getElementById('summon-button');
+                    const carouselContainer = document.getElementById('carousel-container');
+                    const summonArea = document.querySelector('.summon-area');
+                    
+                    // Não fechar se clicou no menu, summon button, carrossel ou área de summon
+                    if (!menuToggle.contains(e.target) && 
+                        !navContainer.contains(e.target) &&
+                        !summonButton?.contains(e.target) &&
+                        !carouselContainer?.contains(e.target) &&
+                        !summonArea?.contains(e.target)) {
                         menuToggle.classList.remove('active');
                         navContainer.classList.remove('active');
                     }

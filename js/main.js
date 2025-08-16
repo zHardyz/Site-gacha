@@ -2,6 +2,28 @@
 const revealSound = new Audio('audio/reveal.wav');
 revealSound.volume = 0.9;
 
+// Função para preservar o funcionamento do menu mobile após manipulações DOM
+function preserveMobileMenu() {
+    setTimeout(() => {
+        const menuToggle = document.getElementById('mobile-menu-toggle');
+        const navContainer = document.getElementById('nav-container');
+        
+        if (menuToggle && navContainer) {
+            // Verificar se os elementos estão visíveis/acessíveis
+            if (window.getComputedStyle(menuToggle).display === 'none' && window.innerWidth <= 480) {
+                menuToggle.style.display = 'flex';
+            }
+            
+            // Manter estado ativo se estava ativo antes
+            if (menuToggle.classList.contains('active')) {
+                navContainer.classList.add('active');
+            }
+            
+            console.log('✅ Menu mobile preservado após summon');
+        }
+    }, 50);
+}
+
 // Função para mostrar loading de 1 segundos
 function showLoading() {
     const loadingScreen = document.getElementById('loading-screen');
@@ -136,10 +158,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const poolStats = window.characterPoolManager.getPoolStats();
         
         for (const [rarity, stats] of Object.entries(poolStats)) {
-            const rarityInfo = rarities[rarity] || { color: '#ffffff' };
+            const rarityInfo = getRarityInfo(rarity);
             const listItem = document.createElement('li');
-            const rarityName = rarityInfo.name || rarity;
-            listItem.innerHTML = `${rarityName}: <span style="color: ${rarityInfo.color}">${stats.percentage}%</span>`;
+            listItem.innerHTML = `${rarityInfo.name}: <span style="color: ${rarityInfo.color}">${stats.percentage}%</span>`;
             rarityList.appendChild(listItem);
         }
         rarityChancesContainer.appendChild(rarityList);
@@ -228,8 +249,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const tl = gsap.timeline();
         tl.to(cards, {
-            x: () => `random(-1000, 1000)%`,
-            y: () => `random(-500, 500)%`,
+            x: () => `random(-200, 200)px`, // Valores em pixels mais controlados
+            y: () => `random(-150, 150)px`, // Valores em pixels mais controlados
             rotation: () => `random(-360, 360)`,
             duration: 1.5,
             stagger: 0.02,
@@ -238,10 +259,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 revealCharacter(winningCharacter, revealCard);
                 saveToStock(winningCharacter);
                 
-                // Consumir o spin e atualizar UI
-                if (window.handleSpin) {
-                    window.handleSpin();
-                }
+                        // Consumir o spin e atualizar UI
+        if (window.handleSpin) {
+            window.handleSpin();
+        }
+        
+        // Garantir que o menu mobile continue funcionando após o summon
+        preserveMobileMenu();
                 
                 // Verificar se ainda tem spins após este spin
                 if (window.canSpin && window.canSpin()) {
@@ -259,7 +283,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     function revealCharacter(character, cardElement) {
-        const rarityInfo = rarities[character.rarity] || rarities['Common'];
+        const rarityInfo = getRarityInfo(character.rarity);
         const glowColor = rarityInfo.color; // Usar cor sólida para o glow principal
         
         cardElement.innerHTML = `<img src="${character.image}" alt="${character.name}" onerror="this.src='https://via.placeholder.com/280x400/1a1a2e/a33bff?text=Sem+Imagem'">`;
@@ -289,8 +313,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 scale: `random(0.5, 1)`,
                 backgroundColor: rarityInfo.color
             }, {
-                x: `random(-300, 300)px`,
-                y: `random(-300, 300)px`,
+                x: `random(-150, 150)px`, // Reduzido para ficar dentro do container
+                y: `random(-150, 150)px`, // Reduzido para ficar dentro do container
                 opacity: 0,
                 duration: `random(1, 2)`,
                 ease: 'power2.out',
@@ -317,7 +341,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         nameContainer.innerHTML = `
             <div class="name-content-compact">
                 <div class="name-rarity-compact" style="color: ${rarityInfo.color}">
-                    ${character.rarity}
+                    ${rarityInfo.name || character.rarity}
                 </div>
                 <div class="name-text-compact">
                     ${character.name}
@@ -371,6 +395,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function saveToStock(character) {
+        // Log detalhado do personagem recebido
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.log('📥 saveToStock recebeu:', {
+                name: character.name,
+                rarity: character.rarity,
+                popularity: character.popularity,
+                poolRarity: character.poolRarity,
+                summonedFrom: character.summonedFrom,
+                originalRarity: character.originalRarity
+            });
+        }
+        
         const inventoryKey = 'gacha.inventory.v1';
         let inventory = [];
         try {
@@ -381,12 +417,40 @@ document.addEventListener('DOMContentLoaded', async () => {
             inventory = [];
         }
 
-        const existing = inventory.find(c => c.name === character.name && c.anime === character.anime);
+        // Usar uma identificação mais robusta para evitar problemas de agrupamento
+        const normalizeString = (str) => {
+            return str ? str.trim().toLowerCase().replace(/\s+/g, ' ') : '';
+        };
+        
+        const characterName = normalizeString(character.name);
+        const characterAnime = normalizeString(character.anime);
+        
+        const existing = inventory.find(c => {
+            const existingName = normalizeString(c.name);
+            const existingAnime = normalizeString(c.anime);
+            return existingName === characterName && existingAnime === characterAnime;
+        });
+        
         if (existing) {
             existing.quantity = (existing.quantity || 1) + 1;
+            // Atualizar a raridade para a mais recente (sorteada)
+            existing.rarity = character.rarity;
+            // Atualizar outros dados se necessário
+            if (character.popularity) existing.popularity = character.popularity;
+            if (character.stars) existing.stars = character.stars;
+            
+            // Log apenas em desenvolvimento
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log(`✅ Personagem repetido agrupado: ${character.name} (Quantidade: ${existing.quantity}) - Raridade: ${existing.rarity}`);
+            }
         } else {
             character.quantity = 1;
             inventory.push(character);
+            
+            // Log apenas em desenvolvimento  
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log(`📦 Novo personagem adicionado: ${character.name} - Raridade: ${character.rarity}`);
+            }
         }
 
         try {
@@ -399,17 +463,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Adicionar eventos para desktop e mobile
     summonButton.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation(); // Evitar que o evento bublem e interfira com outros listeners
         spinCarousel();
     });
     
     summonButton.addEventListener('touchend', (e) => {
         e.preventDefault();
+        e.stopPropagation(); // Evitar que o evento bublem e interfira com outros listeners
         spinCarousel();
     });
     
     // Prevenir zoom em double tap no iOS
     summonButton.addEventListener('touchstart', (e) => {
         e.preventDefault();
+        e.stopPropagation(); // Evitar que o evento bublem e interfira com outros listeners
     });
     
     // Debug removido - sistema funcionando corretamente

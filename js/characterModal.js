@@ -104,7 +104,13 @@ class CharacterModal {
     }
 
     getRarityInfo(rarity) {
-        const rarities = {
+        // Usar a função global
+        if (typeof getRarityInfo === 'function') {
+            return window.getRarityInfo(rarity);
+        }
+        
+        // Fallback se a função global não estiver disponível
+        const fallbackRarities = {
             'Common': { color: '#8a8f98', name: 'Comum' },
             'Rare': { color: '#3b82f6', name: 'Raro' },
             'Epic': { color: '#a855f7', name: 'Épico' },
@@ -112,7 +118,7 @@ class CharacterModal {
             'Mythic': { color: '#ef4444', name: 'Mítico' },
             'Special': { color: '#22d3ee', name: 'Especial' }
         };
-        return rarities[rarity] || rarities['Common'];
+        return fallbackRarities[rarity] || fallbackRarities['Common'];
     }
 
     updateFavoriteButton() {

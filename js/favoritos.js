@@ -7,14 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
         favoriteRarities: document.getElementById('favorite-rarities')
     };
 
-    const RARITIES = {
-        'Common':    { order: 1, color: '#8a8f98', emoji: '⚪', name: 'Comum' },
-        'Rare':      { order: 2, color: '#3b82f6', emoji: '🔵', name: 'Raro' },
-        'Epic':      { order: 3, color: '#a855f7', emoji: '🟣', name: 'Épico' },
-        'Legendary': { order: 4, color: '#f59e0b', emoji: '🟡', name: 'Lendário' },
-        'Mythic':    { order: 5, color: '#ef4444', emoji: '🔴', name: 'Mítico' },
-        'Special':   { order: 6, color: '#22d3ee', emoji: '✨', name: 'Especial' }
-    };
+    // Usar as definições globais de raridade
 
     let favorites = [];
     let inventory = [];
@@ -123,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.tabIndex = 0;
         card.style.animationDelay = `${index * 0.05}s`;
 
-        const rarity = RARITIES[character.rarity] || RARITIES['Common'];
+        const rarity = getRarityInfo(character.rarity);
         let quantityBadge = '';
         if (character.quantity > 1) {
             quantityBadge = `<div class="card-quantity">×${character.quantity}</div>`;
@@ -164,9 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Aplicar cores da raridade
         const cardRarityElement = card.querySelector('.card-rarity');
         if (cardRarityElement) {
-            cardRarityElement.style.setProperty('background', `linear-gradient(135deg, ${rarity.color}, ${rarity.color}99)`, 'important');
-            cardRarityElement.style.setProperty('border', `2px solid ${rarity.color}`, 'important');
-            cardRarityElement.style.setProperty('color', '#ffffff', 'important');
+            // Usar a função global para aplicar estilos
+            applyRarityStyles(cardRarityElement, character.rarity);
         }
         card.style.setProperty('border-color', rarity.color, 'important');
 
@@ -260,8 +252,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Ordenar por raridade e nome
         favorites.sort((a, b) => {
-            const rarityOrderA = RARITIES[a.rarity]?.order ?? 99;
-            const rarityOrderB = RARITIES[b.rarity]?.order ?? 99;
+            const rarityOrderA = getRarityInfo(a.rarity)?.order ?? 99;
+            const rarityOrderB = getRarityInfo(b.rarity)?.order ?? 99;
             if (rarityOrderA !== rarityOrderB) return rarityOrderB - rarityOrderA;
             return a.name.localeCompare(b.name);
         });

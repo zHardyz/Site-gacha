@@ -120,24 +120,37 @@ class CharacterPoolManager {
         const mediaPopularity = media?.popularity || 0;
         
         // Sistema piramidal: quanto mais raro, menos personagens
-        // Ajustar limites para garantir mínimo por raridade
+        let determinedRarity = 'Common';
         
         // Special: ~1.5% - apenas extremamente populares (120k+)
-        if (popularity >= 120000) return 'Special';
-        
+        if (popularity >= 120000) determinedRarity = 'Special';
         // Mythic: ~4% - muito populares (60k+)  
-        if (popularity >= 60000) return 'Mythic';
-        
+        else if (popularity >= 60000) determinedRarity = 'Mythic';
         // Legendary: ~8% - populares (25k+)
-        if (popularity >= 25000) return 'Legendary';
-        
+        else if (popularity >= 25000) determinedRarity = 'Legendary';
         // Epic: ~15% - conhecidos (10k+)
-        if (popularity >= 10000) return 'Epic';
-        
+        else if (popularity >= 10000) determinedRarity = 'Epic';
         // Rare: ~23% - moderadamente conhecidos (3k+)
-        if (popularity >= 3000) return 'Rare';
-        
+        else if (popularity >= 3000) determinedRarity = 'Rare';
         // Common: ~48% - maioria dos personagens (menos de 3k)
+        else determinedRarity = 'Common';
+        
+        // Log apenas em desenvolvimento para alguns casos
+        if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && Math.random() < 0.01) {
+            console.log(`🔍 determineRarity: ${character.name?.full || 'Unknown'} (${popularity} favoritos) → ${determinedRarity}`);
+        }
+        
+        return determinedRarity;
+    }
+
+    // Função PURA para determinar raridade apenas pela popularidade
+    determineRarityByPopularity(popularity) {
+        // Mesma lógica da determineRarity, mas apenas pela popularidade
+        if (popularity >= 120000) return 'Special';
+        if (popularity >= 60000) return 'Mythic';
+        if (popularity >= 25000) return 'Legendary';
+        if (popularity >= 10000) return 'Epic';
+        if (popularity >= 3000) return 'Rare';
         return 'Common';
     }
 
@@ -345,7 +358,9 @@ class CharacterPoolManager {
                 
                 for (let i = 0; i < toMove; i++) {
                     const char = sortedChars.shift();
-                    char.rarity = targetRarity; // Atualizar raridade
+                    // NÃO alterar a raridade original baseada na popularidade!
+                    // Apenas mover para o pool, mas manter raridade real
+                    char.poolAssignment = targetRarity; // Para debug: onde está no pool
                     this.characterPool[targetRarity].push(char);
                     moved++;
                 }
@@ -376,7 +391,9 @@ class CharacterPoolManager {
                 
                 for (let i = 0; i < toMove; i++) {
                     const char = sortedChars.shift();
-                    char.rarity = targetRarity; // Atualizar raridade
+                    // NÃO alterar a raridade original baseada na popularidade!
+                    // Apenas mover para o pool, mas manter raridade real
+                    char.poolAssignment = targetRarity; // Para debug: onde está no pool
                     this.characterPool[targetRarity].push(char);
                     moved++;
                 }
@@ -588,11 +605,25 @@ class CharacterPoolManager {
             return null;
         }
 
-        // 3. Adicionar ao histórico
+        // 3. RECALCULAR raridade baseada na popularidade atual
+        // Garantir que a raridade está sempre correta, independente do pool
+        const originalRarity = character.rarity; // Salvar raridade do pool para debug
+        character.rarity = this.determineRarityByPopularity(character.popularity || 0);
+        
+        // Para debug e histórico
+        character.poolRarity = rarity; // De qual pool veio
+        character.summonedFrom = rarity; // Para histórico  
+        character.poolOriginalRarity = originalRarity; // Raridade que estava no pool
+
+        // 4. Adicionar ao histórico
         this.addToHistory(character);
 
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            console.log(`✨ Summoned: ${character.name} (${character.rarity})`);
+            console.log(`✨ Summoned: ${character.name}`);
+            console.log(`  📊 Popularidade: ${character.popularity?.toLocaleString() || 'N/A'} favoritos`);
+            console.log(`  🎯 Raridade Real: ${character.rarity} (baseada na popularidade)`);
+            console.log(`  🎲 Pool Sorteado: ${rarity}`);
+            console.log(`  📂 Pool Original: ${character.poolOriginalRarity || 'N/A'}`);
         }
         return character;
     }

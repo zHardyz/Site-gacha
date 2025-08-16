@@ -10,14 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ANILIST_API_URL = 'https://graphql.anilist.co';
     const ANILIST_TOKEN = ""; // OPCIONAL. Se adicionar OAuth, coloque aqui: 'Bearer <token>'
 
-    const RARITIES = {
-        'Common':    { order: 1, color: '#8a8f98', emoji: '⚪' },
-        'Rare':      { order: 2, color: '#3b82f6', emoji: '🔵' },
-        'Epic':      { order: 3, color: '#a855f7', emoji: '🟣' },
-        'Legendary': { order: 4, color: '#f59e0b', emoji: '🟡' },
-        'Mythic':    { order: 5, color: '#ef4444', emoji: '🔴' },
-        'Special':   { order: 6, color: '#22d3ee', emoji: '✨' },
-    };
+    // Usar as definições globais de raridade
 
     let inventory = [];
     let favorites = [];
@@ -259,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.tabIndex = 0;
         card.style.animationDelay = `${index * 0.05}s`;
 
-        const rarity = RARITIES[char.rarity] || RARITIES['Common'];
+        const rarity = getRarityInfo(char.rarity);
         let quantityBadge = '';
         if (char.quantity > 1) quantityBadge = `<div class="card-quantity">×${char.quantity}</div>`;
 
@@ -293,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="card-rarity rarity-${char.rarity}" style="background: linear-gradient(135deg, ${rarity.color}, ${rarity.color}99) !important; border: 2px solid ${rarity.color} !important;">
                         <span style="color: ${rarity.color};">${rarity.emoji}</span>
-                        <span>${char.rarity}</span>
+                        <span>${rarity.name || char.rarity}</span>
                     </div>
                 </div>
 
@@ -303,9 +296,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const cardRarityElement = card.querySelector('.card-rarity');
         if (cardRarityElement) {
-            cardRarityElement.style.setProperty('background', `linear-gradient(135deg, ${rarity.color}, ${rarity.color}99)`, 'important');
-            cardRarityElement.style.setProperty('border', `2px solid ${rarity.color}`, 'important');
-            cardRarityElement.style.setProperty('color', '#ffffff', 'important');
+            // Usar a função global para aplicar estilos
+            applyRarityStyles(cardRarityElement, char.rarity);
             const emojiSpan = cardRarityElement.querySelector('span:first-child');
             if (emojiSpan) emojiSpan.style.setProperty('color', '#ffffff', 'important');
         }
@@ -398,8 +390,8 @@ document.addEventListener('DOMContentLoaded', () => {
         DOM.emptyState.style.display = 'none';
 
         items.sort((a, b) => {
-            const rarityOrderA = RARITIES[a.rarity]?.order ?? 99;
-            const rarityOrderB = RARITIES[b.rarity]?.order ?? 99;
+            const rarityOrderA = getRarityInfo(a.rarity)?.order ?? 99;
+            const rarityOrderB = getRarityInfo(b.rarity)?.order ?? 99;
             if (rarityOrderA !== rarityOrderB) return rarityOrderB - rarityOrderA;
             return a.name.localeCompare(b.name);
         });
