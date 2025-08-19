@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let favorites = [];
     let currentFilter = {
         rarity: 'all',
-        sort: 'rarity',
+        sort: 'rarity', // Ordenação por raridade como padrão
         favoritesOnly: false,
         duplicatesOnly: false,
         searchQuery: ''
@@ -185,14 +185,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Função para determinar raridade baseada na popularidade (igual ao characterPool.js)
+    // Função para determinar raridade baseada na popularidade (usando função global)
     function determineRarity(popularity) {
-        if (popularity >= 120000) return 'Special';
-        if (popularity >= 60000) return 'Mythic';
-        if (popularity >= 25000) return 'Legendary';
-        if (popularity >= 10000) return 'Epic';
-        if (popularity >= 3000) return 'Rare';
-        return 'Common';
+        return window.determineRarityByPopularity(popularity);
     }
 
     // Enriquecer itens do estoque que não tenham popularity/quote
@@ -718,8 +713,26 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        // Tornar função global para uso no HTML
-        window.clearFilters = clearFilters;
+            // Tornar função global para uso no HTML
+    window.clearFilters = clearFilters;
+    
+    // Função de debug para verificar ordenação
+    window.debugSorting = function() {
+        console.log('🔍 Debug da ordenação atual:');
+        console.log('  Filtro atual:', currentFilter);
+        console.log('  Total de itens:', inventory.length);
+        
+        const filtered = applyFilters();
+        console.log('  Itens após filtros:', filtered.length);
+        
+        if (filtered.length > 0) {
+            console.log('  Primeiros 5 itens ordenados:');
+            filtered.slice(0, 5).forEach((item, index) => {
+                const rarityInfo = getRarityInfo(item.rarity);
+                console.log(`    ${index + 1}. ${item.name} - ${rarityInfo.name} (ordem: ${rarityInfo.order})`);
+            });
+        }
+    };
     }
     
     function updateSearchFunctionality() {
@@ -739,6 +752,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Corrigir inconsistências de raridade
     if (inventory.length > 0) {
         fixRarityInconsistencies();
+    }
+    
+    // Configurar ordenação padrão por raridade
+    const sortSelect = document.getElementById('sort-filter');
+    if (sortSelect) {
+        sortSelect.value = 'rarity';
+        currentFilter.sort = 'rarity';
     }
     
     // Renderizar grid inicial

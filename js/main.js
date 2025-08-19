@@ -81,28 +81,163 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initializeCharacterPool();
 
     async function initializeCharacterPool() {
+        // Mostrar tela de loading de personagens
+        const characterLoadingScreen = document.getElementById('character-loading-screen');
+        const progressFill = document.querySelector('.loading-progress-fill');
+        const progressText = document.querySelector('.loading-progress-text');
+        const loadedCharacters = document.getElementById('loaded-characters');
+        const estimatedTime = document.getElementById('estimated-time');
+        
+        if (characterLoadingScreen) {
+            characterLoadingScreen.classList.add('active');
+        }
+        
+        // Sistema de progresso melhorado com animação contínua
+        let currentProgress = 0;
+        let targetProgress = 0;
+        let isAnimating = false;
+        let animationInterval;
+        
+        // Função para animar progresso suavemente
+        const animateProgress = () => {
+            if (currentProgress < targetProgress) {
+                currentProgress += 0.5; // Incremento suave
+                if (progressFill) {
+                    progressFill.style.width = `${currentProgress}%`;
+                    progressFill.classList.add('loading'); // Adicionar classe de loading
+                }
+                if (progressText) progressText.textContent = `${Math.round(currentProgress)}%`;
+            } else if (currentProgress > targetProgress) {
+                currentProgress = targetProgress;
+                if (progressFill) {
+                    progressFill.style.width = `${currentProgress}%`;
+                    progressFill.classList.remove('loading'); // Remover classe de loading
+                }
+                if (progressText) progressText.textContent = `${Math.round(currentProgress)}%`;
+            }
+        };
+        
+        // Iniciar animação contínua
+        const startProgressAnimation = () => {
+            if (!isAnimating) {
+                isAnimating = true;
+                animationInterval = setInterval(animateProgress, 50); // 20 FPS
+            }
+        };
+        
+        // Parar animação
+        const stopProgressAnimation = () => {
+            if (isAnimating) {
+                isAnimating = false;
+                clearInterval(animationInterval);
+            }
+        };
+        
+        // Função para mostrar erro na barra
+        const showProgressError = () => {
+            if (progressFill) {
+                progressFill.classList.remove('loading');
+                progressFill.classList.add('error');
+            }
+            
+            // Mostrar mensagem de erro
+            const errorMessage = document.getElementById('loading-error');
+            if (errorMessage) {
+                errorMessage.style.display = 'flex';
+            }
+        };
+        
+        // Função para atualizar progresso com animação
+        const updateProgress = (percent, step, characters = 0) => {
+            targetProgress = percent;
+            if (loadedCharacters) loadedCharacters.textContent = characters;
+            
+            // Atualizar step ativo
+            const steps = document.querySelectorAll('.loading-step');
+            steps.forEach(s => {
+                s.classList.remove('active', 'completed');
+            });
+            
+            const currentStep = document.querySelector(`[data-step="${step}"]`);
+            if (currentStep) {
+                currentStep.classList.add('active');
+            }
+            
+            // Marcar steps anteriores como completados
+            const stepOrder = ['cache', 'api', 'fetch', 'process', 'ready'];
+            const currentIndex = stepOrder.indexOf(step);
+            for (let i = 0; i < currentIndex; i++) {
+                const completedStep = document.querySelector(`[data-step="${stepOrder[i]}"]`);
+                if (completedStep) {
+                    completedStep.classList.add('completed');
+                }
+            }
+        };
+        
+        // Iniciar animação
+        startProgressAnimation();
+        
         // Inicializar o sistema de pool de personagens
         console.log('🔄 Initializing character pool...');
+        updateProgress(10, 'cache');
+        
+        // Progresso contínuo durante carregamento
+        let continuousProgress = 10;
+        const continuousProgressInterval = setInterval(() => {
+            if (continuousProgress < 85) { // Parar em 85% até confirmar sucesso
+                continuousProgress += 0.3; // Progresso muito lento
+                updateProgress(continuousProgress, 'fetch');
+            }
+        }, 200); // A cada 200ms
         
         // Timeout de 30 segundos para inicialização
         const timeout = setTimeout(() => {
             console.warn('⚠️ Inicialização demorou muito, habilitando botão mesmo assim...');
-            summonButton.innerHTML = 'Invocar (Modo Offline)';
-            summonButton.style.opacity = '1';
-            summonButton.disabled = false;
-            isInitializing = false;
+            clearInterval(continuousProgressInterval);
+            updateProgress(90, 'ready'); // Parar em 90% em caso de erro
+            setTimeout(() => {
+                stopProgressAnimation();
+                if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
+                summonButton.innerHTML = 'Invocar (Modo Offline)';
+                summonButton.style.opacity = '1';
+                summonButton.disabled = false;
+                isInitializing = false;
+            }, 1000);
         }, 30000);
         
         try {
-            await window.characterPoolManager.initialize();
+            updateProgress(20, 'api');
+            await new Promise(resolve => setTimeout(resolve, 800)); // Delay um pouco maior
+            
+            updateProgress(30, 'fetch');
+            await window.characterPoolManager.initialize((message, percent) => {
+                // Mapear percentuais do pool para o progresso geral
+                const mappedPercent = 30 + (percent * 0.4); // 30% a 70%
+                updateProgress(mappedPercent, 'fetch');
+                
+                // Atualizar texto do step se necessário
+                const fetchStep = document.querySelector('[data-step="fetch"] .step-text');
+                if (fetchStep) {
+                    fetchStep.textContent = message;
+                }
+            });
+            
+            clearInterval(continuousProgressInterval);
+            updateProgress(80, 'process');
             clearTimeout(timeout);
             console.log('✅ Character pool ready!');
             
             // Verificar se foi inicializado corretamente
             if (!window.characterPoolManager.isInitialized) {
                 console.warn('⚠️ Pool manager não foi inicializado corretamente');
-                summonButton.innerHTML = 'Erro de Inicialização';
-                summonButton.style.opacity = '0.7';
+                clearInterval(continuousProgressInterval);
+                updateProgress(90, 'ready'); // Parar em 90% em caso de erro
+                setTimeout(() => {
+                    stopProgressAnimation();
+                    if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
+                    summonButton.innerHTML = 'Erro de Inicialização';
+                    summonButton.style.opacity = '0.7';
+                }, 1000);
                 return;
             }
             
@@ -112,6 +247,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('📊 Total de personagens no pool:', totalChars);
             console.log('📊 Stats detalhados:', poolStats);
             
+            updateProgress(85, 'process', totalChars);
+            
             if (totalChars === 0) {
                 console.warn('⚠️ Pool vazio! Tentando criar fallback...');
                 // Tentar criar fallback manualmente
@@ -120,33 +257,60 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const newTotal = Object.values(newStats).reduce((sum, stat) => sum + stat.count, 0);
                 
                 if (newTotal === 0) {
-                    summonButton.innerHTML = 'Erro - Recarregue a Página';
-                    summonButton.style.opacity = '0.7';
+                    clearInterval(continuousProgressInterval);
+                    updateProgress(90, 'ready'); // Parar em 90% em caso de erro
+                    showProgressError(); // Mostrar erro na barra
+                    setTimeout(() => {
+                        stopProgressAnimation();
+                        if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
+                        summonButton.innerHTML = 'Erro - Recarregue a Página';
+                        summonButton.style.opacity = '0.7';
+                    }, 1000);
                     return;
                 }
                 console.log('✅ Fallback criado com sucesso! Total:', newTotal);
+                updateProgress(90, 'process', newTotal);
             }
             
-            // Restaurar botão
-            summonButton.innerHTML = 'Invocar';
-            summonButton.style.opacity = '1';
-            summonButton.disabled = false;
-            
-            isInitializing = false;
-        } catch (error) {
-            clearTimeout(timeout);
-            console.error('❌ Failed to initialize character pool:', error);
-            // Tentar fallback em caso de erro
-            try {
-                window.characterPoolManager.createFallbackPool();
-                summonButton.innerHTML = 'Invocar (Modo Offline)';
+            // Finalizar carregamento com sucesso
+            clearInterval(continuousProgressInterval);
+            updateProgress(100, 'ready', totalChars);
+            setTimeout(() => {
+                stopProgressAnimation();
+                if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
+                summonButton.innerHTML = 'Invocar';
                 summonButton.style.opacity = '1';
                 summonButton.disabled = false;
                 isInitializing = false;
+            }, 1000);
+            
+        } catch (error) {
+            clearTimeout(timeout);
+            clearInterval(continuousProgressInterval);
+            console.error('❌ Failed to initialize character pool:', error);
+            // Tentar fallback em caso de erro
+            try {
+                updateProgress(85, 'process');
+                window.characterPoolManager.createFallbackPool();
+                updateProgress(100, 'ready');
+                setTimeout(() => {
+                    stopProgressAnimation();
+                    if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
+                    summonButton.innerHTML = 'Invocar (Modo Offline)';
+                    summonButton.style.opacity = '1';
+                    summonButton.disabled = false;
+                    isInitializing = false;
+                }, 1000);
             } catch (fallbackError) {
                 console.error('❌ Fallback também falhou:', fallbackError);
-                summonButton.innerHTML = 'Erro - Recarregue a Página';
-                summonButton.style.opacity = '0.5';
+                updateProgress(90, 'ready'); // Parar em 90% em caso de erro
+                showProgressError(); // Mostrar erro na barra
+                setTimeout(() => {
+                    stopProgressAnimation();
+                    if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
+                    summonButton.innerHTML = 'Erro - Recarregue a Página';
+                    summonButton.style.opacity = '0.5';
+                }, 1000);
             }
         }
     }
@@ -290,23 +454,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         revealSound.currentTime = 0;
         revealSound.play().catch(err => console.log("Som de revelação bloqueado pelo navegador:", err));
         
-        cardElement.innerHTML = `<img src="${character.image}" alt="${character.name}" onerror="this.src='https://via.placeholder.com/280x400/1a1a2e/a33bff?text=Sem+Imagem'">`;
-        gsap.set(cardElement, { x: 0, y: 0, rotation: 0, scale: 1.5, zIndex: 100 });
-
+        // Primeiro, fazer a carta atual sair de visão (deslizar para a direita)
         const tl = gsap.timeline();
-        tl.to(cardElement, { scale: 1, duration: 0.5, ease: 'back.out(1.7)' })
-          .to(cardElement, {
-              boxShadow: `0 0 30px 10px ${glowColor}70, 0 0 60px 25px ${glowColor}40, 0 0 90px 35px ${glowColor}20`,
-              duration: 0.8,
-              ease: 'power2.inOut',
-              yoyo: true,
-              repeat: 3
-          }, "-=.2")
-          .call(() => {
-              // Criar e mostrar animação do nome
-              showCharacterNameAnimation(character, rarityInfo, cardElement);
-          }, null, "-=1.5");
+        
+        // Fase 1: Carta atual sai de visão
+        tl.to(cardElement, {
+            x: 280, // Deslizar para fora da tela pela direita
+            scale: 0.8,
+            opacity: 0,
+            duration: 0.4,
+            ease: 'power2.in'
+        })
+        // Fase 2: Configurar nova carta e fazer ela entrar
+        .call(() => {
+            // Configurar o card com a imagem do personagem
+            cardElement.innerHTML = `<img src="${character.image}" alt="${character.name}" onerror="this.src='https://via.placeholder.com/280x400/1a1a2e/a33bff?text=Sem+Imagem'">`;
+            
+            // Adicionar classe para animação CSS
+            cardElement.classList.add('revealing');
+            
+            // Configuração inicial - nova carta começa deslizada para a esquerda
+            gsap.set(cardElement, { 
+                x: -280, // Deslizar para fora da tela pela esquerda
+                y: 0, 
+                rotation: 0, // Sem rotação
+                scale: 0.8, 
+                opacity: 0,
+                zIndex: 100 
+            });
+        })
+        // Fase 3: Nova carta entra de visão
+        .to(cardElement, { 
+            x: 0, // Deslizar para o centro
+            scale: 1,
+            opacity: 1,
+            duration: 0.6, 
+            ease: 'power2.out' 
+        })
+        // Efeito de glow com a cor da raridade
+        .to(cardElement, {
+            boxShadow: `0 0 30px 10px ${glowColor}70, 0 0 60px 25px ${glowColor}40, 0 0 90px 35px ${glowColor}20`,
+            duration: 0.6,
+            ease: 'power2.inOut',
+            yoyo: true,
+            repeat: 2
+        }, "-=.3")
+        // Mostrar animação do nome
+        .call(() => {
+            showCharacterNameAnimation(character, rarityInfo, cardElement);
+        }, null, "-=1.0")
+        // Remover classe de animação após completar
+        .call(() => {
+            cardElement.classList.remove('revealing');
+        });
 
+        // Criar partículas de efeito
         for (let i = 0; i < 30; i++) {
             const particle = document.createElement('div');
             particle.className = 'particle';
@@ -317,8 +519,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 scale: `random(0.5, 1)`,
                 backgroundColor: rarityInfo.color
             }, {
-                x: `random(-150, 150)px`, // Reduzido para ficar dentro do container
-                y: `random(-150, 150)px`, // Reduzido para ficar dentro do container
+                x: `random(-150, 150)px`,
+                y: `random(-150, 150)px`,
                 opacity: 0,
                 duration: `random(1, 2)`,
                 ease: 'power2.out',
@@ -363,7 +565,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             zIndex: 10001
         });
 
-        // Animação rápida e discreta
+        // Animação MAIS RÁPIDA - reduzida de 0.3s para 0.15s e delay de 1.2s para 0.8s
         const nameTimeline = gsap.timeline();
         
         nameTimeline
@@ -378,7 +580,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 scale: 1,
                 x: 0,
                 y: 0,
-                duration: 0.3,
+                duration: 0.15, // Reduzido de 0.3s para 0.15s
                 ease: 'back.out(1.4)'
             })
             .to(nameContainer, {
@@ -386,9 +588,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 scale: 0.8,
                 x: 10,
                 y: -5,
-                duration: 0.2,
+                duration: 0.15, // Reduzido de 0.2s para 0.15s
                 ease: 'power2.in',
-                delay: 1.2
+                delay: 0.8 // Reduzido de 1.2s para 0.8s
             })
             .call(() => {
                 nameContainer.remove();

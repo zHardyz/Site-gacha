@@ -271,12 +271,7 @@ if (typeof window !== 'undefined') {
         // Corrigir inconsistências de raridade
         fixRarity: () => {
             const determineRarity = (popularity) => {
-                if (popularity >= 120000) return 'Special';
-                if (popularity >= 60000) return 'Mythic';
-                if (popularity >= 25000) return 'Legendary';
-                if (popularity >= 10000) return 'Epic';
-                if (popularity >= 3000) return 'Rare';
-                return 'Common';
+                return window.determineRarityByPopularity(popularity);
             };
 
             let inventoryFixed = 0;

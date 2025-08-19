@@ -34,9 +34,17 @@
             <span class="nav-icon">📦</span>
             Coleção
         </a>
+        <a href="buscar.html" class="nav-link">
+            <span class="nav-icon">🔍</span>
+            Buscar
+        </a>
         <a href="favoritos.html" class="nav-link">
             <span class="nav-icon">💖</span>
             Favoritos
+        </a>
+        <a href="logs.html" class="nav-link">
+            <span class="nav-icon">📋</span>
+            Logs
         </a>
     </nav>
 
@@ -50,14 +58,22 @@
                 <span class="nav-icon">📦</span>
                 Coleção
             </a>
+            <a href="buscar.html" class="nav-link">
+                <span class="nav-icon">🔍</span>
+                Buscar
+            </a>
             <a href="favoritos.html" class="nav-link">
                 <span class="nav-icon">💖</span>
                 Favoritos
             </a>
+            <a href="logs.html" class="nav-link">
+                <span class="nav-icon">📋</span>
+                Logs
+            </a>
         </nav>
     </header>
     <div class="site-notice" id="site-notice">
-    <span>🚧 Isso ainda está em teste e seus personagens podem ser resetados e espere bugs.</span>
+    <span>🚧 isso ainda está em teste, aguardo feedbacks.</span>
     <button class="close-notice" onclick="document.getElementById('site-notice').style.display='none'">×</button>
 </div>
 
@@ -73,6 +89,70 @@
     <div class="loading-crack"></div>
   </div>
 </div>
+
+                <!-- Tela de loading para carregamento de personagens -->
+                <div id="character-loading-screen" class="character-loading-screen">
+                    <div class="character-loading-content">
+                        <div class="loading-title">
+                            <span class="loading-icon">🎮</span>
+                            <h2>Carregando Personagens</h2>
+                        </div>
+                        
+                        <div class="loading-progress-container">
+                            <div class="loading-progress-bar">
+                                <div class="loading-progress-fill"></div>
+                            </div>
+                            <div class="loading-progress-text">0%</div>
+                        </div>
+                        
+                        <div class="loading-status">
+                            <div class="loading-step active" data-step="cache">
+                                <span class="step-icon">💾</span>
+                                <span class="step-text">Verificando cache...</span>
+                            </div>
+                            <div class="loading-step" data-step="api">
+                                <span class="step-icon">🌐</span>
+                                <span class="step-text">Conectando com API...</span>
+                            </div>
+                            <div class="loading-step" data-step="fetch">
+                                <span class="step-icon">📥</span>
+                                <span class="step-text">Baixando personagens...</span>
+                            </div>
+                            <div class="loading-step" data-step="process">
+                                <span class="step-icon">⚙️</span>
+                                <span class="step-text">Processando dados...</span>
+                            </div>
+                            <div class="loading-step" data-step="ready">
+                                <span class="step-icon">✅</span>
+                                <span class="step-text">Pronto para invocar!</span>
+                            </div>
+                        </div>
+                        
+                        <div class="loading-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Personagens carregados:</span>
+                                <span class="stat-value" id="loaded-characters">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Tempo estimado:</span>
+                                <span class="stat-value" id="estimated-time">--</span>
+                            </div>
+                        </div>
+                        
+                        <div class="loading-tips">
+                            <p>💡 Dica: O primeiro carregamento pode demorar alguns segundos</p>
+                        </div>
+                        
+                        <!-- Mensagem de erro (oculta por padrão) -->
+                        <div class="loading-error" id="loading-error" style="display: none;">
+                            <div class="error-icon">⚠️</div>
+                            <div class="error-message">
+                                <h3>Erro no Carregamento</h3>
+                                <p>Não foi possível carregar os personagens. Tente recarregar a página.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
 
                 <button id="summon-button">Invocar</button>

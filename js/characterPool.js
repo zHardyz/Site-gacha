@@ -17,12 +17,12 @@ class CharacterPoolManager {
         };
         
         this.rarityWeights = {
-            Common: 0.35,
-            Rare: 0.25,
-            Epic: 0.20,
-            Legendary: 0.12,
-            Mythic: 0.06,
-            Special: 0.02
+            Common: 0.35,    // 35% - Comum
+            Rare: 0.25,      // 25% - Raro  
+            Epic: 0.20,      // 20% - Épico
+            Legendary: 0.12, // 12% - Lendário
+            Mythic: 0.06,    // 6% - Mítico
+            Special: 0.02    // 2% - Especial
         };
         
         this.isInitialized = false;
@@ -112,50 +112,26 @@ class CharacterPoolManager {
         }
     }
 
-    // Determinar raridade com distribuição massiva em baixas e escassa em altas
+    // Determinar raridade usando a função global centralizada
     determineRarity(character) {
         const popularity = character.favourites || 0;
-        const media = character.media?.nodes?.[0];
-        const score = media?.averageScore || 0;
-        const mediaPopularity = media?.popularity || 0;
-        
-        // Sistema piramidal: quanto mais raro, menos personagens
-        let determinedRarity = 'Common';
-        
-        // Special: ~1.5% - apenas extremamente populares (120k+)
-        if (popularity >= 120000) determinedRarity = 'Special';
-        // Mythic: ~4% - muito populares (60k+)  
-        else if (popularity >= 60000) determinedRarity = 'Mythic';
-        // Legendary: ~8% - populares (25k+)
-        else if (popularity >= 25000) determinedRarity = 'Legendary';
-        // Epic: ~15% - conhecidos (10k+)
-        else if (popularity >= 10000) determinedRarity = 'Epic';
-        // Rare: ~23% - moderadamente conhecidos (3k+)
-        else if (popularity >= 3000) determinedRarity = 'Rare';
-        // Common: ~48% - maioria dos personagens (menos de 3k)
-        else determinedRarity = 'Common';
+        const rarity = window.determineRarityByPopularity(popularity);
         
         // Log apenas em desenvolvimento para alguns casos
         if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && Math.random() < 0.01) {
-            console.log(`🔍 determineRarity: ${character.name?.full || 'Unknown'} (${popularity} favoritos) → ${determinedRarity}`);
+            console.log(`🔍 determineRarity: ${character.name?.full || 'Unknown'} (${popularity} favoritos) → ${rarity}`);
         }
         
-        return determinedRarity;
+        return rarity;
     }
 
     // Função PURA para determinar raridade apenas pela popularidade
     determineRarityByPopularity(popularity) {
-        // Mesma lógica da determineRarity, mas apenas pela popularidade
-        if (popularity >= 120000) return 'Special';
-        if (popularity >= 60000) return 'Mythic';
-        if (popularity >= 25000) return 'Legendary';
-        if (popularity >= 10000) return 'Epic';
-        if (popularity >= 3000) return 'Rare';
-        return 'Common';
+        return window.determineRarityByPopularity(popularity);
     }
 
     // Construir pool de personagens com múltiplas estratégias de busca
-    async buildCharacterPool() {
+    async buildCharacterPool(onProgress) {
         console.log('🔄 Building character pool...');
         
         // Resetar pool
@@ -166,19 +142,28 @@ class CharacterPoolManager {
         let totalFetched = 0;
         const maxCharacters = 4000;
         
+        // Callback de progresso
+        const updateProgress = (message, percent) => {
+            if (onProgress) onProgress(message, percent);
+        };
+        
         // Estratégia 1: Buscar por popularidade (top characters)
         console.log('📥 Fetching popular characters...');
+        updateProgress('Baixando personagens populares...', 40);
         totalFetched += await this.fetchCharactersBySort('FAVOURITES_DESC', 40, totalFetched, maxCharacters);
         
         // Estratégia 2: Buscar por relevância/recentes 
         console.log('📥 Fetching relevant characters...');
+        updateProgress('Baixando personagens relevantes...', 60);
         totalFetched += await this.fetchCharactersBySort('RELEVANCE', 30, totalFetched, maxCharacters);
         
         // Estratégia 3: Buscar aleatórios para completar Common
         console.log('📥 Fetching random characters...');
+        updateProgress('Baixando personagens aleatórios...', 80);
         totalFetched += await this.fetchCharactersBySort('ID', 30, totalFetched, maxCharacters);
 
         // Rebalancear para garantir mínimo por raridade
+        updateProgress('Processando e organizando personagens...', 90);
         await this.ensureMinimumPerRarity();
 
         // Log final da distribuição
@@ -192,8 +177,10 @@ class CharacterPoolManager {
         });
         console.log(`  TOTAL: ${total} characters`);
 
+        updateProgress('Salvando no cache...', 95);
         this.saveToCache();
         this.isInitialized = true;
+        updateProgress('Carregamento concluído!', 100);
     }
 
     // Buscar personagens por tipo de ordenação
@@ -407,19 +394,23 @@ class CharacterPoolManager {
     }
 
     // Inicializar pool (usar cache se válido)
-    async initialize() {
+    async initialize(onProgress) {
         if (this.isCacheValid() && this.loadFromCache()) {
             this.isInitialized = true;
             console.log('✅ Character pool initialized from cache');
+            if (onProgress) onProgress('Carregado do cache!', 100);
             return;
         }
 
         console.log('🔄 Cache invalid or missing, building new character pool...');
+        if (onProgress) onProgress('Cache expirado, baixando novos personagens...', 30);
         try {
-            await this.buildCharacterPool();
+            await this.buildCharacterPool(onProgress);
         } catch (error) {
             console.error('❌ Erro ao construir pool da API, usando personagens de fallback...', error);
+            if (onProgress) onProgress('Erro na API, usando personagens de backup...', 85);
             this.createFallbackPool();
+            if (onProgress) onProgress('Personagens de backup carregados!', 100);
         }
     }
 
@@ -533,6 +524,10 @@ class CharacterPoolManager {
         for (const [rarity, weight] of Object.entries(this.rarityWeights)) {
             cumulative += weight;
             if (random <= cumulative) {
+                // Log para verificar se as probabilidades estão sendo aplicadas
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.log(`🎲 Raridade sorteada: ${rarity} (${(weight * 100).toFixed(1)}% chance) - Random: ${random.toFixed(4)}`);
+                }
                 return rarity;
             }
         }
@@ -595,8 +590,7 @@ class CharacterPoolManager {
 
         // 1. Sortear raridade
         const rarity = this.rollRarity();
-        console.log(`🎲 Rolled rarity: ${rarity}`);
-
+        
         // 2. Selecionar personagem da raridade
         const character = this.selectCharacterFromRarity(rarity);
         
@@ -622,7 +616,7 @@ class CharacterPoolManager {
             console.log(`✨ Summoned: ${character.name}`);
             console.log(`  📊 Popularidade: ${character.popularity?.toLocaleString() || 'N/A'} favoritos`);
             console.log(`  🎯 Raridade Real: ${character.rarity} (baseada na popularidade)`);
-            console.log(`  🎲 Pool Sorteado: ${rarity}`);
+            console.log(`  🎲 Pool Sorteado: ${rarity} (${(this.rarityWeights[rarity] * 100).toFixed(1)}% chance)`);
             console.log(`  📂 Pool Original: ${character.poolOriginalRarity || 'N/A'}`);
         }
         return character;

@@ -112,10 +112,10 @@ const rarities = GLOBAL_RARITIES;
 
 // Função para determinar raridade pela popularidade (mesma lógica do characterPool)
 function determineRarityByPopularity(popularity) {
-    if (popularity >= 120000) return 'Special';
-    if (popularity >= 60000) return 'Mythic';
-    if (popularity >= 25000) return 'Legendary';
-    if (popularity >= 10000) return 'Epic';
+    if (popularity >= 30000) return 'Special';
+    if (popularity >= 20000) return 'Mythic';
+    if (popularity >= 10000) return 'Legendary';
+    if (popularity >= 5000) return 'Epic';
     if (popularity >= 3000) return 'Rare';
     return 'Common';
 }
@@ -186,6 +186,23 @@ window.rarities = rarities;
 window.debugRarityConsistency = debugRarityConsistency;
 window.determineRarityByPopularity = determineRarityByPopularity;
 
+// Função para mostrar as probabilidades atuais
+window.showCurrentProbabilities = function() {
+    console.log('📊 Probabilidades atuais de summon:');
+    Object.entries(GLOBAL_RARITIES).forEach(([rarity, info]) => {
+        console.log(`  ${info.emoji} ${rarity}: ${(info.dropRate * 100).toFixed(1)}% (${info.name})`);
+    });
+    
+    if (window.characterPoolManager) {
+        console.log('\n📈 Estatísticas do pool atual:');
+        const stats = window.characterPoolManager.getPoolStats();
+        Object.entries(stats).forEach(([rarity, stat]) => {
+            const rarityInfo = getRarityInfo(rarity);
+            console.log(`  ${rarityInfo.emoji} ${rarity}: ${stat.count} personagens (${stat.percentage}% chance)`);
+        });
+    }
+};
+
 // Função para limpar cache e forçar rebuild do pool
 window.forcePoolRebuild = function() {
     console.log('🔄 Forçando rebuild do pool de personagens...');
@@ -221,12 +238,93 @@ window.testRarityConsistency = function() {
     console.log('✅ Teste concluído!');
 };
 
+// Função para explicar como funciona o carregamento
+window.explainLoadingProcess = function() {
+    console.log('📚 Como funciona o carregamento de personagens:');
+    console.log('');
+    console.log('🔄 Processo de inicialização:');
+    console.log('  1. Verificação de cache (10%) - Procura por dados salvos localmente');
+    console.log('  2. Conexão com API (20%) - Testa conectividade com AniList');
+    console.log('  3. Download de personagens (30-80%) - Baixa dados da API');
+    console.log('     • Personagens populares (40%) - Top favoritos');
+    console.log('     • Personagens relevantes (60%) - Por relevância');
+    console.log('     • Personagens aleatórios (80%) - Para completar pool');
+    console.log('  4. Processamento (80-95%) - Organiza por raridade');
+    console.log('  5. Pronto para usar (100%) - Sistema ativo');
+    console.log('');
+    console.log('💾 Cache:');
+    console.log('  • Dura 24 horas');
+    console.log('  • Salvo localmente no navegador');
+    console.log('  • Primeira vez: ~10-30 segundos');
+    console.log('  • Próximas vezes: ~1-3 segundos');
+    console.log('');
+    console.log('🎲 Pool de personagens:');
+    console.log('  • ~4000 personagens total');
+    console.log('  • Distribuídos por raridade');
+    console.log('  • Probabilidades configuradas');
+    console.log('  • Anti-repetição ativo');
+    console.log('');
+    console.log('🔧 Para forçar recarregamento:');
+    console.log('  forcePoolRebuild()');
+};
+
+// Função para testar as probabilidades de summon
+window.testSummonProbabilities = function(iterations = 10000) {
+    console.log(`🎲 Testando probabilidades de summon (${iterations.toLocaleString()} iterações)...`);
+    
+    if (!window.characterPoolManager) {
+        console.error('❌ CharacterPoolManager não encontrado');
+        return;
+    }
+    
+    const results = {
+        Common: 0,
+        Rare: 0,
+        Epic: 0,
+        Legendary: 0,
+        Mythic: 0,
+        Special: 0
+    };
+    
+    for (let i = 0; i < iterations; i++) {
+        const rarity = window.characterPoolManager.rollRarity();
+        results[rarity]++;
+    }
+    
+    console.log('📊 Resultados das probabilidades:');
+    let totalDeviation = 0;
+    Object.entries(results).forEach(([rarity, count]) => {
+        const percentage = ((count / iterations) * 100).toFixed(2);
+        const expected = (GLOBAL_RARITIES[rarity].dropRate * 100).toFixed(2);
+        const deviation = Math.abs(parseFloat(percentage) - parseFloat(expected)).toFixed(2);
+        totalDeviation += parseFloat(deviation);
+        
+        const status = parseFloat(deviation) < 1 ? '✅' : '⚠️';
+        console.log(`  ${status} ${rarity}: ${count} (${percentage}%) - Esperado: ${expected}% (Desvio: ${deviation}%)`);
+    });
+    
+    const avgDeviation = (totalDeviation / 6).toFixed(2);
+    console.log(`📈 Desvio médio: ${avgDeviation}%`);
+    
+    if (parseFloat(avgDeviation) < 2) {
+        console.log('✅ Probabilidades estão funcionando corretamente!');
+    } else {
+        console.log('⚠️ Probabilidades podem ter algum problema - verifique o código.');
+    }
+    
+    console.log('✅ Teste de probabilidades concluído!');
+    return results;
+};
+
 let bannerCharacters = [];
 
 // Executar correção automática de raridades quando a página carrega
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🔧 Sistema de raridades global carregado');
     console.log('💡 Para corrigir raridades inconsistentes, execute: debugRarityConsistency()');
+    console.log('🎲 Para testar probabilidades, execute: testSummonProbabilities()');
+    console.log('📊 Para ver probabilidades atuais, execute: showCurrentProbabilities()');
+    console.log('📚 Para entender o carregamento, execute: explainLoadingProcess()');
     
     // Executar correção automática em 2 segundos para dar tempo dos outros scripts carregarem
     setTimeout(() => {

@@ -15,7 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateSpinsUI() {
         if (spinsLeftElement) {
-            spinsLeftElement.textContent = `Invocações restantes: ${spinsLeft}/10`;
+            // Para teste, mostrar o número real de spins se for maior que 10
+            const maxSpins = spinsLeft > 10 ? spinsLeft : 10;
+            spinsLeftElement.textContent = `Invocações restantes: ${spinsLeft}/${maxSpins}`;
             if (spinsLeft === 1) {
                 spinsLeftElement.classList.add('pulse');
             } else {

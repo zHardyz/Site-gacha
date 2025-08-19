@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Personagem - Gacha Invocação</title>
+    <meta name="description" content="Busque personagens de anime e veja informações detalhadas">
+    <link rel="icon" type="image/png" href="icone anime.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .search-page {
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .search-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .search-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .search-subtitle {
+            font-size: 1.1rem;
+            color: #a1a1aa;
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 1rem 1.5rem;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .search-input::placeholder {
+            color: #71717a;
+        }
+
+        .search-button {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            min-width: 120px;
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .search-button:active {
+            transform: translateY(0);
+        }
+
+        .search-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .character-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .character-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .character-card.not-found {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .not-found-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .not-found-text {
+            font-size: 1.5rem;
+            color: #a1a1aa;
+            margin-bottom: 0.5rem;
+        }
+
+        .not-found-subtext {
+            color: #71717a;
+            font-size: 1rem;
+        }
+
+        .character-content {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .character-image-container {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .character-image {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .character-image:hover {
+            transform: scale(1.05);
+        }
+
+        .character-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .character-name {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .character-anime {
+            font-size: 1.1rem;
+            color: #a1a1aa;
+            margin: 0;
+        }
+
+        .character-stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-icon {
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .rarity-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .rarity-Common {
+            background: rgba(138, 143, 152, 0.2);
+            color: #8a8f98;
+            border: 1px solid rgba(138, 143, 152, 0.3);
+        }
+
+        .rarity-Rare {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .rarity-Epic {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .rarity-Legendary {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .rarity-Mythic {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .rarity-Special {
+            background: rgba(34, 211, 238, 0.2);
+            color: #22d3ee;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .ownership-status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-owned {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-not-owned {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+                 /* Ajuste para o padding da página com navbar fixa */
+         .search-page {
+             padding-top: 80px;
+         }
+
+                 @media (max-width: 768px) {
+             .search-container {
+                 padding: 1rem;
+             }
+
+             .search-title {
+                 font-size: 2rem;
+             }
+
+             .search-form {
+                 flex-direction: column;
+             }
+
+             .search-input {
+                 min-width: auto;
+             }
+
+             .character-content {
+                 grid-template-columns: 1fr;
+                 text-align: center;
+             }
+
+             .character-image-container {
+                 max-width: 200px;
+                 margin: 0 auto;
+             }
+
+             .character-stats {
+                 justify-content: center;
+             }
+         }
+    </style>
+</head>
+<body>
+    <!-- Botão de menu mobile -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+    </button>
+
+    <!-- Navbar mobile (fora do header) -->
+    <nav class="nav-container" id="nav-container">
+        <a href="index.html" class="nav-link">
+            <span class="nav-icon">⚡</span>
+            Invocar
+        </a>
+        <a href="stock.html" class="nav-link">
+            <span class="nav-icon">📦</span>
+            Coleção
+        </a>
+        <a href="buscar.html" class="nav-link active">
+            <span class="nav-icon">🔍</span>
+            Buscar
+        </a>
+        <a href="favoritos.html" class="nav-link">
+            <span class="nav-icon">💖</span>
+            Favoritos
+        </a>
+        <a href="logs.html" class="nav-link">
+            <span class="nav-icon">📋</span>
+            Logs
+        </a>
+    </nav>
+
+    <header class="main-header">
+        <nav class="nav-container-desktop">
+            <a href="index.html" class="nav-link">
+                <span class="nav-icon">⚡</span>
+                Invocar
+            </a>
+            <a href="stock.html" class="nav-link">
+                <span class="nav-icon">📦</span>
+                Coleção
+            </a>
+            <a href="buscar.html" class="nav-link active">
+                <span class="nav-icon">🔍</span>
+                Buscar
+            </a>
+            <a href="favoritos.html" class="nav-link">
+                <span class="nav-icon">💖</span>
+                Favoritos
+            </a>
+            <a href="logs.html" class="nav-link">
+                <span class="nav-icon">📋</span>
+                Logs
+            </a>
+        </nav>
+    </header>
+
+    <main class="search-page">
+        <div class="search-container">
+            <div class="search-header">
+                <h1 class="search-title">Buscar Personagem</h1>
+                <p class="search-subtitle">Caso não encontre o personagem tente escrever o segundo nome ou verifique se esta correto.</p>
+            </div>
+
+            <form class="search-form" id="search-form">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="character-search"
+                    placeholder="Ex: Naruto, Goku, Luffy..."
+                    required
+                >
+                <button type="submit" class="search-button" id="search-button">
+                    <span class="button-text">Buscar</span>
+                    <span class="loading-spinner" style="display: none;"></span>
+                </button>
+            </form>
+
+            <div id="character-result"></div>
+        </div>
+    </main>
+
+         <script src="js/dataManager.js"></script>
+     <script src="js/bannerConfig.js"></script>
+     <script src="js/characterSearch.js"></script>
+     
+     <script>
+         // Mobile Menu Toggle
+         document.addEventListener('DOMContentLoaded', () => {
+             const menuToggle = document.getElementById('mobile-menu-toggle');
+             const navContainer = document.getElementById('nav-container');
+             
+             if (menuToggle && navContainer) {
+                 menuToggle.addEventListener('click', () => {
+                     menuToggle.classList.toggle('active');
+                     navContainer.classList.toggle('active');
+                 });
+                 
+                 // Fechar menu ao clicar em um link
+                 const navLinks = navContainer.querySelectorAll('.nav-link');
+                 navLinks.forEach(link => {
+                     link.addEventListener('click', () => {
+                         menuToggle.classList.remove('active');
+                         navContainer.classList.remove('active');
+                     });
+                 });
+                 
+                 // Fechar menu ao clicar fora dele
+                 document.addEventListener('click', (e) => {
+                     if (!menuToggle.contains(e.target) && !navContainer.contains(e.target)) {
+                         menuToggle.classList.remove('active');
+                         navContainer.classList.remove('active');
+                     }
+                 });
+             }
+         });
+     </script>
+ </body>
+ </html>
