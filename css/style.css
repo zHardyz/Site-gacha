@@ -18,6 +18,17 @@
     box-sizing: border-box;
 }
 
+/* Prevenir scroll horizontal apenas quando necessário */
+html {
+    overflow-x: hidden;
+}
+
+body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; /* Modern font */
     background-color: var(--background);
@@ -27,7 +38,9 @@ body {
     background-image: radial-gradient(circle at top right, rgba(163, 59, 255, 0.2), transparent 40%),
                       radial-gradient(circle at bottom left, rgba(0, 229, 255, 0.2), transparent 40%);
     min-height: 100vh;
+    width: 100%;
     max-width: 100vw; /* Prevenir expansão horizontal */
+    position: relative;
 }
 
 /* Navbar Moderna e Padronizada */
@@ -174,6 +187,7 @@ main {
     min-height: calc(100vh - 100px);
     padding: 1rem;
     padding-top: 120px; /* Espaço para a navbar fixa */
+    width: 100%;
 }
 
 /* Summon Page */
@@ -234,6 +248,8 @@ main {
         0 0 0 1px rgba(255, 255, 255, 0.1),
         0 20px 40px rgba(0, 0, 0, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .carousel {
@@ -753,32 +769,44 @@ main {
 }
 
 @media (max-width: 768px) {
-    body { font-size: 14px; }
+    body { 
+        font-size: 14px; 
+        overflow-x: hidden;
+        width: 100%;
+    }
     
     .summon-content {
         padding: 1rem;
         gap: 1.5rem;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
     }
     
     .summon-area {
         gap: 2rem;
+        width: 100%;
+        max-width: 100vw;
     }
     
     .info-panel {
         width: 100%;
         max-width: 400px;
+        margin: 0 auto;
     }
     
     .nav-container-desktop {
         gap: 0.4rem;
         padding: 0.6rem 0.8rem;
         justify-content: space-around;
+        flex-wrap: wrap;
     }
     
     .nav-link {
         padding: 0.5rem 0.8rem;
         font-size: 0.85rem;
         gap: 0.3rem;
+        white-space: nowrap;
     }
     
     .nav-icon {
@@ -789,23 +817,58 @@ main {
         padding: 1rem 2.5rem;
         font-size: 1.1rem;
         min-width: 180px;
+        max-width: 90vw;
     }
     
     main {
         padding-top: 90px;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+    
+    /* Garantir que o carrossel não cause overflow */
+    #carousel-container {
+        width: 100%;
+        max-width: 100vw;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .carousel-card {
+        width: 100%;
+        max-width: 100%;
+        position: absolute;
+        left: 0;
+        right: 0;
+    }
+    
+    .carousel-card img {
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+        object-fit: cover;
     }
 }
 
 @media (max-width: 600px) {
+    body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+    
     .nav-container-desktop {
         gap: 0.3rem;
         padding: 0.5rem 0.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
     }
     
     .nav-link {
         padding: 0.4rem 0.6rem;
         font-size: 0.8rem;
         gap: 0.2rem;
+        white-space: nowrap;
     }
     
     .nav-icon {
@@ -815,15 +878,41 @@ main {
     .summon-content {
         padding: 0.8rem;
         gap: 1.2rem;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
     }
     
     .info-panel {
         max-width: 350px;
+        width: 100%;
+        margin: 0 auto;
+    }
+    
+    #summon-button {
+        max-width: 85vw;
+        min-width: auto;
+    }
+    
+    #carousel-container {
+        width: 100%;
+        max-width: 100vw;
+        overflow: hidden;
     }
 }
 
 @media (max-width: 480px) {
-    #stock-container { grid-template-columns: 1fr; }
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        font-size: 13px;
+    }
+    
+    #stock-container { 
+        grid-template-columns: 1fr; 
+        width: 100%;
+        max-width: 100vw;
+    }
     
     /* Ocultar apenas o header, mas não a nav */
     .main-header {
@@ -899,6 +988,22 @@ main {
     
     main {
         padding-top: 2rem; /* Reduzido já que navbar está oculta */
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+    
+    .summon-content {
+        padding: 0.5rem;
+        gap: 1rem;
+        width: 100%;
+        max-width: 100vw;
+    }
+    
+    .info-panel {
+        max-width: 320px;
+        width: 100%;
+        margin: 0 auto;
     }
     
     #summon-button {
@@ -907,66 +1012,22 @@ main {
         margin-top: 1.5rem;
         min-height: 60px; /* Mínimo para touch targets */
         min-width: 200px;
+        max-width: 90vw;
     }
     
     #summon-button:active {
         transform: scale(0.95);
         box-shadow: 0 0 20px rgba(163, 59, 255, 0.8);
     }
+    
+    #carousel-container {
+        width: 100%;
+        max-width: 100vw;
+        overflow: hidden;
+    }
 }
 
-/* ===== LOADING SCREEN ===== */
-#loading-screen {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--background, #0f0f1a);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
 
-.loading-bar-container {
-  position: relative;
-  width: 60%;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.loading-bar {
-  position: absolute;
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #22d3ee, #8b5cf6);
-  animation: loading-fill 1s linear forwards;
-}
-
-@keyframes loading-fill {
-  from { width: 0%; }
-  to { width: 100%; }
-}
-
-.loading-crack {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: transparent;
-  opacity: 0;
-  pointer-events: none;
-}
-
-@keyframes crack {
-  0%   { transform: scaleX(0); opacity: 1; background: white; }
-  50%  { transform: scaleX(1); opacity: 1; background: white; }
-  100% { opacity: 0; }
-}
 
 /* ===== TELA DE LOADING DE PERSONAGENS ===== */
 .character-loading-screen {

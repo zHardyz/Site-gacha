@@ -95,6 +95,43 @@ class CharacterPoolManager {
         `;
 
         try {
+            // Tentar diferentes proxies CORS para contornar problemas no GitHub Pages
+            const proxies = [
+                'https://api.allorigins.win/raw?url=',
+                'https://cors-anywhere.herokuapp.com/',
+                'https://thingproxy.freeboard.io/fetch/'
+            ];
+            
+            let lastError = null;
+            
+            for (const proxy of proxies) {
+                try {
+                    const targetUrl = 'https://graphql.anilist.co';
+                    const response = await fetch(proxy + targetUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Origin': window.location.origin,
+                        },
+                        body: JSON.stringify({ query, variables: { page, perPage } })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    return data.data.Page;
+                } catch (proxyError) {
+                    console.warn(`Proxy ${proxy} failed:`, proxyError);
+                    lastError = proxyError;
+                    continue;
+                }
+            }
+            
+            // Se todos os proxies falharem, tentar diretamente
+            console.log('Tentando conexão direta com AniList...');
             const response = await fetch('https://graphql.anilist.co', {
                 method: 'POST',
                 headers: {
@@ -106,8 +143,9 @@ class CharacterPoolManager {
 
             const data = await response.json();
             return data.data.Page;
+            
         } catch (error) {
-            console.error('❌ Error fetching from AniList:', error);
+            console.error('❌ All connection methods failed:', error);
             return null;
         }
     }
@@ -404,74 +442,24 @@ class CharacterPoolManager {
 
         console.log('🔄 Cache invalid or missing, building new character pool...');
         if (onProgress) onProgress('Cache expirado, baixando novos personagens...', 30);
+        
         try {
             await this.buildCharacterPool(onProgress);
         } catch (error) {
-            console.error('❌ Erro ao construir pool da API, usando personagens de fallback...', error);
-            if (onProgress) onProgress('Erro na API, usando personagens de backup...', 85);
-            this.createFallbackPool();
-            if (onProgress) onProgress('Personagens de backup carregados!', 100);
+            console.error('❌ Erro ao construir pool da API:', error);
+            if (onProgress) onProgress('Erro na API, tentando novamente...', 50);
+            
+            // Tentar novamente uma vez
+            try {
+                await this.buildCharacterPool(onProgress);
+            } catch (retryError) {
+                console.error('❌ Segunda tentativa também falhou:', retryError);
+                throw new Error('Não foi possível conectar com a API da AniList. Verifique sua conexão com a internet.');
+            }
         }
     }
 
-    // Criar pool de fallback se a API falhar
-    createFallbackPool() {
-        console.log('🔧 Criando pool de fallback...');
-        
-        const fallbackCharacters = [
-            { id: 1, name: 'Naruto Uzumaki', anime: 'Naruto', rarity: 'Legendary', popularity: 50000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b17-IazKGogHSHZW.png' },
-            { id: 2, name: 'Monkey D. Luffy', anime: 'One Piece', rarity: 'Legendary', popularity: 45000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b40-chR0Ec0RcEzw.png' },
-            { id: 3, name: 'Edward Elric', anime: 'Fullmetal Alchemist', rarity: 'Epic', popularity: 35000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b11-Zqvv6CzQ6nbJ.jpg' },
-            { id: 4, name: 'Light Yagami', anime: 'Death Note', rarity: 'Mythic', popularity: 40000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b80-IjmKt6bMlayW.jpg' },
-            { id: 5, name: 'Ichigo Kurosaki', anime: 'Bleach', rarity: 'Epic', popularity: 30000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b5-Vddc3hCzKF7s.jpg' },
-            { id: 6, name: 'Goku', anime: 'Dragon Ball Z', rarity: 'Special', popularity: 60000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b246-0VBE4PdVZjkF.jpg' },
-            { id: 7, name: 'Sasuke Uchiha', anime: 'Naruto', rarity: 'Epic', popularity: 35000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b13-LJDzDiybgDLH.png' },
-            { id: 8, name: 'Levi Ackerman', anime: 'Attack on Titan', rarity: 'Legendary', popularity: 55000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b45627-dUeb4ukrE0nF.jpg' },
-            { id: 9, name: 'Senku Ishigami', anime: 'Dr. Stone', rarity: 'Rare', popularity: 15000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b106414-RWJGm7QNUyoJ.png' },
-            { id: 10, name: 'Tanjiro Kamado', anime: 'Demon Slayer', rarity: 'Epic', popularity: 25000, image: 'https://s4.anilist.co/file/anilistcdn/character/large/b146156-lWzTaO9u4Xvr.jpg' },
-        ];
 
-        // Resetar pools
-        Object.keys(this.characterPool).forEach(rarity => {
-            this.characterPool[rarity] = [];
-        });
-
-        // Adicionar personagens de fallback
-        fallbackCharacters.forEach(char => {
-            char.lastSummoned = 0;
-            this.characterPool[char.rarity].push(char);
-        });
-
-        // Adicionar alguns personagens comuns
-        for (let i = 11; i <= 25; i++) {
-            this.characterPool['Common'].push({
-                id: i,
-                name: `Personagem ${i}`,
-                anime: 'Anime Genérico',
-                rarity: 'Common',
-                popularity: Math.floor(Math.random() * 2000) + 500,
-                image: 'https://via.placeholder.com/280x400/1a1a2e/a33bff?text=Sem+Imagem',
-                lastSummoned: 0
-            });
-        }
-
-        // Adicionar alguns raros
-        for (let i = 26; i <= 35; i++) {
-            this.characterPool['Rare'].push({
-                id: i,
-                name: `Herói ${i}`,
-                anime: 'Anime Legal',
-                rarity: 'Rare',
-                popularity: Math.floor(Math.random() * 5000) + 3000,
-                image: 'https://via.placeholder.com/280x400/3b82f6/ffffff?text=Raro',
-                lastSummoned: 0
-            });
-        }
-
-        console.log('✅ Pool de fallback criado com sucesso!');
-        this.saveToCache();
-        this.isInitialized = true;
-    }
 
     // Carregar histórico de summons
     loadLastSummons() {

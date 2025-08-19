@@ -24,23 +24,7 @@ function preserveMobileMenu() {
     }, 50);
 }
 
-// Função para mostrar loading de 1 segundos
-function showLoading() {
-    const loadingScreen = document.getElementById('loading-screen');
-    const crack = document.querySelector('.loading-crack');
 
-    // Espera o preenchimento da barra (1s) e depois "racha" e remove
-    setTimeout(() => {
-        crack.style.animation = "crack 0.5s ease-out forwards";
-        setTimeout(() => {
-            loadingScreen.style.opacity = "0";
-            setTimeout(() => loadingScreen.remove(), 100);
-        }, 100);
-    }, 1000);
-}
-
-// Chama o loading ao entrar na página
-showLoading();
 
 document.addEventListener('DOMContentLoaded', async () => {
     const carouselContainer = document.getElementById('carousel-container');
@@ -227,19 +211,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             clearTimeout(timeout);
             console.log('✅ Character pool ready!');
             
-            // Verificar se foi inicializado corretamente
-            if (!window.characterPoolManager.isInitialized) {
-                console.warn('⚠️ Pool manager não foi inicializado corretamente');
-                clearInterval(continuousProgressInterval);
-                updateProgress(90, 'ready'); // Parar em 90% em caso de erro
-                setTimeout(() => {
-                    stopProgressAnimation();
-                    if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
-                    summonButton.innerHTML = 'Erro de Inicialização';
-                    summonButton.style.opacity = '0.7';
-                }, 1000);
-                return;
-            }
+                    // Verificar se foi inicializado corretamente
+        if (!window.characterPoolManager.isInitialized) {
+            console.warn('⚠️ Pool manager não foi inicializado corretamente');
+            clearInterval(continuousProgressInterval);
+            updateProgress(90, 'ready'); // Parar em 90% em caso de erro
+            setTimeout(() => {
+                stopProgressAnimation();
+                if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
+                summonButton.innerHTML = 'Erro de Conexão';
+                summonButton.style.opacity = '0.7';
+                summonButton.disabled = true;
+            }, 1000);
+            return;
+        }
             
             // Verificar se o pool tem personagens
             const poolStats = window.characterPoolManager.getPoolStats();
@@ -250,26 +235,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateProgress(85, 'process', totalChars);
             
             if (totalChars === 0) {
-                console.warn('⚠️ Pool vazio! Tentando criar fallback...');
-                // Tentar criar fallback manualmente
-                window.characterPoolManager.createFallbackPool();
-                const newStats = window.characterPoolManager.getPoolStats();
-                const newTotal = Object.values(newStats).reduce((sum, stat) => sum + stat.count, 0);
-                
-                if (newTotal === 0) {
-                    clearInterval(continuousProgressInterval);
-                    updateProgress(90, 'ready'); // Parar em 90% em caso de erro
-                    showProgressError(); // Mostrar erro na barra
-                    setTimeout(() => {
-                        stopProgressAnimation();
-                        if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
-                        summonButton.innerHTML = 'Erro - Recarregue a Página';
-                        summonButton.style.opacity = '0.7';
-                    }, 1000);
-                    return;
-                }
-                console.log('✅ Fallback criado com sucesso! Total:', newTotal);
-                updateProgress(90, 'process', newTotal);
+                console.warn('⚠️ Pool vazio! Erro na API.');
+                clearInterval(continuousProgressInterval);
+                updateProgress(90, 'ready'); // Parar em 90% em caso de erro
+                showProgressError(); // Mostrar erro na barra
+                setTimeout(() => {
+                    stopProgressAnimation();
+                    if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
+                    summonButton.innerHTML = 'Erro - Sem Personagens';
+                    summonButton.style.opacity = '0.7';
+                    summonButton.disabled = true;
+                }, 1000);
+                return;
             }
             
             // Finalizar carregamento com sucesso
@@ -288,30 +265,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             clearTimeout(timeout);
             clearInterval(continuousProgressInterval);
             console.error('❌ Failed to initialize character pool:', error);
-            // Tentar fallback em caso de erro
-            try {
-                updateProgress(85, 'process');
-                window.characterPoolManager.createFallbackPool();
-                updateProgress(100, 'ready');
-                setTimeout(() => {
-                    stopProgressAnimation();
-                    if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
-                    summonButton.innerHTML = 'Invocar (Modo Offline)';
-                    summonButton.style.opacity = '1';
-                    summonButton.disabled = false;
-                    isInitializing = false;
-                }, 1000);
-            } catch (fallbackError) {
-                console.error('❌ Fallback também falhou:', fallbackError);
-                updateProgress(90, 'ready'); // Parar em 90% em caso de erro
-                showProgressError(); // Mostrar erro na barra
-                setTimeout(() => {
-                    stopProgressAnimation();
-                    if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
-                    summonButton.innerHTML = 'Erro - Recarregue a Página';
-                    summonButton.style.opacity = '0.5';
-                }, 1000);
-            }
+            updateProgress(90, 'ready'); // Parar em 90% em caso de erro
+            showProgressError(); // Mostrar erro na barra
+            setTimeout(() => {
+                stopProgressAnimation();
+                if (characterLoadingScreen) characterLoadingScreen.classList.remove('active');
+                summonButton.innerHTML = 'Erro de Conexão';
+                summonButton.style.opacity = '0.7';
+                summonButton.disabled = true;
+            }, 1000);
         }
     }
 
