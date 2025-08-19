@@ -1230,6 +1230,99 @@ main {
     .loading-tips p {
         font-size: 0.8rem;
     }
+    
+    /* Responsividade vertical para mobile */
+    .character-loading-screen {
+        padding: 0.25rem;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .character-loading-content {
+        max-height: 85vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1.5rem 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        /* Scroll discreto */
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+        -webkit-overflow-scrolling: touch; /* iOS */
+        /* Garantir que o scroll funcione */
+        position: relative;
+        z-index: 10001;
+    }
+    
+    /* Esconder barra de scroll no WebKit */
+    .character-loading-content::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* Aumentar barra de progresso no mobile */
+    .loading-progress-bar {
+        height: 10px !important;
+        min-width: 250px;
+    }
+    
+    /* Forçar scroll na tela de loading mobile */
+    .character-loading-screen {
+        overflow: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
+    }
+    
+    .character-loading-content {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
+    }
+    
+    .loading-title {
+        margin-bottom: 0.75rem;
+    }
+    
+    .loading-title h2 {
+        font-size: 1.3rem;
+    }
+    
+    .loading-icon {
+        font-size: 2.2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .loading-progress-container {
+        margin-bottom: 0.75rem;
+    }
+    
+    .loading-progress-bar {
+        height: 8px;
+    }
+    
+    .loading-status {
+        margin-bottom: 0.75rem;
+    }
+    
+    .loading-step {
+        font-size: 0.85rem;
+        padding: 0.4rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .loading-stats {
+        margin-bottom: 0.4rem;
+        font-size: 0.8rem;
+    }
+    
+    .loading-tips {
+        margin-bottom: 0.4rem;
+    }
+    
+    .loading-tips p {
+        font-size: 0.75rem;
+    }
 }
 
 /* ===== RESPONSIVIDADE EXTRA PARA TELAS PEQUENAS ===== */
@@ -1277,6 +1370,71 @@ main {
     
     .error-message p {
         font-size: 0.8rem;
+    }
+    
+    /* Responsividade vertical para telas pequenas */
+    .character-loading-screen {
+        padding: 0.1rem;
+    }
+    
+    .character-loading-content {
+        max-height: 85vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem 0.75rem;
+        /* Scroll discreto */
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+        -webkit-overflow-scrolling: touch; /* iOS */
+    }
+    
+    /* Esconder barra de scroll no WebKit */
+    .character-loading-content::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .loading-title {
+        margin-bottom: 0.5rem;
+    }
+    
+    .loading-title h2 {
+        font-size: 1.1rem;
+    }
+    
+    .loading-icon {
+        font-size: 1.8rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .loading-progress-container {
+        margin-bottom: 0.5rem;
+    }
+    
+    .loading-progress-bar {
+        height: 6px;
+    }
+    
+    .loading-status {
+        margin-bottom: 0.5rem;
+    }
+    
+    .loading-step {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.3rem;
+        margin-bottom: 0.1rem;
+    }
+    
+    .loading-stats {
+        margin-bottom: 0.3rem;
+        font-size: 0.7rem;
+    }
+    
+    .loading-tips {
+        margin-bottom: 0.3rem;
+    }
+    
+    .loading-tips p {
+        font-size: 0.65rem;
     }
 }
 
@@ -1330,6 +1488,301 @@ main {
     .loading-tips p {
         font-size: 0.75rem;
     }
+    
+    /* Responsividade vertical para landscape */
+    .character-loading-content {
+        max-height: 80vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1.25rem;
+        /* Scroll discreto */
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+        -webkit-overflow-scrolling: touch; /* iOS */
+    }
+    
+    /* Esconder barra de scroll no WebKit */
+    .character-loading-content::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .loading-title {
+        margin-bottom: 0.4rem;
+    }
+    
+    .loading-title h2 {
+        font-size: 1.2rem;
+    }
+    
+    .loading-icon {
+        font-size: 2rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .loading-progress-container {
+        margin-bottom: 0.4rem;
+    }
+    
+    .loading-progress-bar {
+        height: 7px;
+    }
+    
+    .loading-status {
+        margin-bottom: 0.4rem;
+    }
+    
+    .loading-step {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.4rem;
+        margin-bottom: 0.05rem;
+    }
+    
+    .loading-stats {
+        margin-bottom: 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    .loading-tips {
+        margin-bottom: 0.25rem;
+    }
+    
+    .loading-tips p {
+        font-size: 0.7rem;
+    }
+}
+
+/* ===== RESPONSIVIDADE PARA TELAS COM ALTURA BAIXA ===== */
+@media (max-height: 600px) {
+    .character-loading-content {
+        max-height: 90vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0.75rem;
+        /* Scroll discreto */
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+        -webkit-overflow-scrolling: touch; /* iOS */
+    }
+    
+    /* Esconder barra de scroll no WebKit */
+    .character-loading-content::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .loading-title {
+        margin-bottom: 0.4rem;
+    }
+    
+    .loading-title h2 {
+        font-size: 1rem;
+    }
+    
+    .loading-icon {
+        font-size: 1.6rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .loading-progress-container {
+        margin-bottom: 0.4rem;
+    }
+    
+    .loading-progress-bar {
+        height: 5px;
+    }
+    
+    .loading-status {
+        margin-bottom: 0.4rem;
+    }
+    
+    .loading-step {
+        font-size: 0.7rem;
+        padding: 0.15rem 0.3rem;
+        margin-bottom: 0.05rem;
+    }
+    
+    .loading-stats {
+        margin-bottom: 0.2rem;
+        font-size: 0.65rem;
+    }
+    
+    .loading-tips {
+        margin-bottom: 0.2rem;
+    }
+    
+    .loading-tips p {
+        font-size: 0.6rem;
+    }
+}
+
+/* ===== RESPONSIVIDADE PARA TELAS MUITO PEQUENAS EM ALTURA ===== */
+@media (max-height: 500px) {
+    .character-loading-content {
+        max-height: 95vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0.5rem;
+        /* Scroll discreto */
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+        -webkit-overflow-scrolling: touch; /* iOS */
+    }
+    
+    /* Esconder barra de scroll no WebKit */
+    .character-loading-content::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .loading-title {
+        margin-bottom: 0.3rem;
+    }
+    
+    .loading-title h2 {
+        font-size: 0.9rem;
+    }
+    
+    .loading-icon {
+        font-size: 1.3rem;
+        margin-bottom: 0.15rem;
+    }
+    
+    .loading-progress-container {
+        margin-bottom: 0.3rem;
+    }
+    
+    .loading-progress-bar {
+        height: 4px;
+    }
+    
+    .loading-status {
+        margin-bottom: 0.3rem;
+    }
+    
+    .loading-step {
+        font-size: 0.65rem;
+        padding: 0.1rem 0.25rem;
+        margin-bottom: 0.02rem;
+    }
+    
+    .loading-stats {
+        font-size: 0.6rem;
+        margin-bottom: 0.15rem;
+    }
+    
+    .loading-tips {
+        margin-bottom: 0.15rem;
+    }
+    
+    .loading-tips p {
+        font-size: 0.55rem;
+    }
+    
+    .loading-error {
+        padding: 0.4rem;
+    }
+    
+    .error-message h3 {
+        font-size: 0.8rem;
+    }
+    
+    .error-message p {
+        font-size: 0.65rem;
+    }
+}
+
+/* ===== RESPONSIVIDADE PARA TELAS PEQUENAS EM AMBAS DIMENSÕES ===== */
+@media (max-width: 480px) and (max-height: 600px) {
+    .character-loading-content {
+        max-height: 90vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0.5rem;
+        max-width: 99.5%;
+        width: 99.5%;
+        /* Scroll discreto */
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+        -webkit-overflow-scrolling: touch; /* iOS */
+    }
+    
+    /* Esconder barra de scroll no WebKit */
+    .character-loading-content::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .loading-title {
+        margin-bottom: 0.3rem;
+    }
+    
+    .loading-title h2 {
+        font-size: 0.95rem;
+    }
+    
+    .loading-icon {
+        font-size: 1.4rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .loading-progress-container {
+        margin-bottom: 0.3rem;
+    }
+    
+    .loading-progress-bar {
+        height: 5px;
+    }
+    
+    .loading-status {
+        margin-bottom: 0.3rem;
+    }
+    
+    .loading-step {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.25rem;
+        margin-bottom: 0.05rem;
+    }
+    
+    .loading-stats {
+        font-size: 0.6rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .loading-tips {
+        margin-bottom: 0.2rem;
+    }
+    
+    .loading-tips p {
+        font-size: 0.55rem;
+    }
+    
+    /* Aumentar barra de progresso em telas pequenas */
+    .loading-progress-bar {
+        height: 10px !important;
+        min-width: 250px;
+    }
+    
+    /* Forçar scroll em telas pequenas */
+    .character-loading-screen {
+        overflow: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
+    }
+    
+    .character-loading-content {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
+    }
+    
+    .loading-error {
+        padding: 0.4rem;
+    }
+    
+    .error-message h3 {
+        font-size: 0.85rem;
+    }
+    
+    .error-message p {
+        font-size: 0.6rem;
+    }
 }
 
 /* ===== TELA DE LOADING DE PERSONAGENS ===== */
@@ -1366,7 +1819,36 @@ main {
     backdrop-filter: blur(20px);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
     animation: loading-pulse 2s ease-in-out infinite;
-    overflow: hidden;
+    overflow: visible;
+    /* Configuração para scroll interno discreto */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    -webkit-overflow-scrolling: touch; /* iOS */
+}
+
+/* Esconder barra de scroll no WebKit */
+.character-loading-content::-webkit-scrollbar {
+    display: none;
+}
+
+/* Garantir que o scroll funcione na tela de loading */
+.character-loading-screen {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+.character-loading-screen.active {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+/* Garantir que o conteúdo da tela de loading tenha scroll */
+.character-loading-content {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 
 @keyframes loading-pulse {
