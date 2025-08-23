@@ -26,6 +26,17 @@ class CharacterModal {
                 document.body.style.overflow = '';
             }
         });
+
+        // Adicionar suporte a navegação por teclado para o botão de fechar
+        this.modal.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const closeButton = this.modal.querySelector('.modal-close');
+                if (document.activeElement === closeButton) {
+                    e.preventDefault();
+                    this.closeModal();
+                }
+            }
+        });
     }
 
     async openModal(character) {
@@ -36,6 +47,9 @@ class CharacterModal {
         
         // Preencher informações básicas
         this.populateBasicInfo(character);
+        
+        // Carregar collections
+        this.populateCollections();
         
         // Carregar informações detalhadas em paralelo
         await Promise.all([
@@ -403,6 +417,158 @@ class CharacterModal {
             }
         }
     }
+
+    // === SISTEMA DE COLLECTIONS ===
+
+    populateCollections() {
+        const collectionSelect = document.getElementById('collection-select');
+        const addButton = document.getElementById('add-to-collection-btn');
+        const statusElement = document.getElementById('collection-status');
+        
+        if (!collectionSelect || !addButton || !statusElement) return;
+
+        // Limpar status
+        this.clearCollectionStatus();
+
+        // Verificar se o sistema de collections está disponível
+        if (!window.collectionsSystem) {
+            collectionSelect.innerHTML = '<option value="">Sistema de Collections não disponível</option>';
+            addButton.disabled = true;
+            return;
+        }
+
+        // Obter collections do usuário
+        const collections = window.collectionsSystem.listCollections();
+        
+        // Limpar select
+        collectionSelect.innerHTML = '<option value="">Selecione uma collection...</option>';
+        
+        if (collections.length === 0) {
+            collectionSelect.innerHTML = '<option value="">Nenhuma collection criada</option>';
+            addButton.disabled = true;
+            return;
+        }
+
+        // Adicionar opções de collections
+        collections.forEach(collection => {
+            const option = document.createElement('option');
+            option.value = collection.id;
+            option.textContent = collection.name;
+            collectionSelect.appendChild(option);
+        });
+
+        // Habilitar botão
+        addButton.disabled = false;
+
+        // Verificar se o personagem já está em alguma collection
+        this.updateCollectionStatus();
+    }
+
+    updateCollectionStatus() {
+        if (!this.currentCharacter || !window.collectionsSystem) return;
+
+        const collections = window.collectionsSystem.listCollections();
+        const statusElement = document.getElementById('collection-status');
+        
+        if (!statusElement) return;
+
+        // Verificar em quais collections o personagem já está
+        const inCollections = collections.filter(collection => 
+            window.collectionsSystem.hasCharacter(collection.id, {
+                name: this.currentCharacter.name,
+                anime: this.currentCharacter.anime
+            })
+        );
+
+        if (inCollections.length > 0) {
+            const collectionNames = inCollections.map(c => c.name).join(', ');
+            this.showCollectionStatus(`Já está em: ${collectionNames}`, 'info');
+        }
+    }
+
+    addToCollection() {
+        if (!this.currentCharacter) return;
+
+        const collectionSelect = document.getElementById('collection-select');
+        const addButton = document.getElementById('add-to-collection-btn');
+        const selectedCollectionId = collectionSelect.value;
+
+        if (!selectedCollectionId) {
+            this.showCollectionStatus('Selecione uma collection', 'error');
+            return;
+        }
+
+        // Verificar se o personagem está no inventário
+        const inventory = JSON.parse(localStorage.getItem('gacha.inventory.v1') || '[]');
+        const characterInInventory = inventory.find(char => 
+            char.name === this.currentCharacter.name && 
+            char.anime === this.currentCharacter.anime
+        );
+
+        if (!characterInInventory) {
+            this.showCollectionStatus('voce nao tem esse personagem', 'error');
+            return;
+        }
+
+        // Desabilitar botão durante a operação
+        addButton.disabled = true;
+        addButton.innerHTML = '<span>⏳</span> Adicionando...';
+
+        try {
+            // Adicionar à collection
+            const result = window.collectionsSystem.addCharacterToCollection(selectedCollectionId, characterInInventory);
+            
+            if (result.ok) {
+                this.showCollectionStatus('Personagem adicionado à collection!', 'success');
+                // Resetar select
+                collectionSelect.value = '';
+                // Atualizar status
+                this.updateCollectionStatus();
+            } else if (result.reason === 'already_in') {
+                this.showCollectionStatus('Already in this collection', 'info');
+            }
+        } catch (error) {
+            this.showCollectionStatus(`Erro: ${error.message}`, 'error');
+        } finally {
+            // Reabilitar botão
+            addButton.disabled = false;
+            addButton.innerHTML = '<span>🗂️</span> Adicionar';
+        }
+    }
+
+    showCollectionStatus(message, type = 'info') {
+        const statusElement = document.getElementById('collection-status');
+        if (!statusElement) return;
+
+        // Limpar classes anteriores
+        statusElement.className = 'collection-status';
+        
+        // Adicionar classe de tipo
+        statusElement.classList.add(type);
+
+        // Definir ícone baseado no tipo
+        let icon = 'ℹ️';
+        if (type === 'success') icon = '✅';
+        else if (type === 'error') icon = '❌';
+        else if (type === 'info') icon = 'ℹ️';
+
+        statusElement.innerHTML = `<span class="status-icon">${icon}</span> ${message}`;
+
+        // Auto-limpar após 5 segundos para sucesso/info
+        if (type === 'success' || type === 'info') {
+            setTimeout(() => {
+                this.clearCollectionStatus();
+            }, 5000);
+        }
+    }
+
+    clearCollectionStatus() {
+        const statusElement = document.getElementById('collection-status');
+        if (statusElement) {
+            statusElement.innerHTML = '';
+            statusElement.className = 'collection-status';
+        }
+    }
 }
 
 // Instanciar modal
@@ -412,6 +578,7 @@ const characterModal = new CharacterModal();
 window.openCharacterModal = (character) => characterModal.openModal(character);
 window.closeCharacterModal = () => characterModal.closeModal();
 window.toggleFavorite = () => characterModal.toggleFavorite();
+window.addToCollection = () => characterModal.addToCollection();
 window.openAniListPage = () => {
     const btn = document.getElementById('modal-anilist-btn');
     if (btn.onclick) btn.onclick();
@@ -419,6 +586,13 @@ window.openAniListPage = () => {
 
 // Função global para a galeria simples
 window.toggleImageSize = (element) => characterModal.toggleImageSize(element);
+
+// Listener para mudanças nas collections
+window.addEventListener('collectionsChanged', () => {
+    if (characterModal.currentCharacter) {
+        characterModal.populateCollections();
+    }
+});
 
 
 

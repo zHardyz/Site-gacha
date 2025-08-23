@@ -51,23 +51,7 @@ body {
     padding: 0;
 }
 
-/* Botão de menu mobile (oculto por padrão) */
-.mobile-menu-toggle {
-    display: none;
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    background: rgba(10, 10, 20, 0.95);
-    border: 2px solid rgba(163, 59, 255, 0.5);
-    border-radius: 8px;
-    padding: 0.75rem;
-    z-index: 1001;
-    cursor: pointer;
-    flex-direction: column;
-    gap: 4px;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
+
 
 .mobile-menu-toggle:hover {
     border-color: var(--primary);
@@ -108,6 +92,135 @@ body {
 /* Ocultar navbar mobile por padrão */
 .nav-container {
     display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, rgba(10, 10, 20, 0.98), rgba(26, 26, 46, 0.98));
+    backdrop-filter: blur(30px);
+    border-bottom: 2px solid rgba(163, 59, 255, 0.4);
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 4rem 1.5rem 2rem; /* Reduzido para ficar igual às outras páginas */
+    transform: translateY(-100%);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(163, 59, 255, 0.1);
+    z-index: 999;
+    justify-content: flex-start;
+    align-items: stretch;
+    max-height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.nav-container.active {
+    display: flex;
+    transform: translateY(0) !important;
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(163, 59, 255, 0.2);
+}
+
+/* Botão de fechar na navbar mobile */
+.nav-close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(135deg, rgba(163, 59, 255, 0.3), rgba(255, 59, 157, 0.3));
+    border: 2px solid rgba(163, 59, 255, 0.6);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+/* Espaçamento para o primeiro item da navbar mobile */
+.nav-container .nav-link:first-of-type {
+    margin-top: 3rem; /* Espaço para o botão de fechar */
+}
+
+.nav-close-button:hover {
+    background: linear-gradient(135deg, rgba(163, 59, 255, 0.5), rgba(255, 59, 157, 0.5));
+    border-color: rgba(163, 59, 255, 0.8);
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(163, 59, 255, 0.4);
+}
+
+.nav-container .nav-link {
+    flex-direction: row;
+    justify-content: flex-start;
+    width: 100%;
+    text-decoration: none;
+    color: var(--text-primary);
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(163, 59, 255, 0.2);
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.nav-container .nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(163, 59, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.nav-container .nav-link:hover::before {
+    left: 100%;
+}
+
+.nav-container .nav-link:hover {
+    background: linear-gradient(135deg, rgba(163, 59, 255, 0.15), rgba(255, 59, 157, 0.1));
+    border-color: rgba(163, 59, 255, 0.4);
+    transform: translateX(8px) scale(1.02);
+    box-shadow: 0 4px 20px rgba(163, 59, 255, 0.2);
+}
+
+.nav-container .nav-link.active {
+    background: linear-gradient(135deg, rgba(163, 59, 255, 0.25), rgba(255, 59, 157, 0.15));
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: 0 0 20px rgba(163, 59, 255, 0.3);
+    transform: translateX(5px);
+}
+
+.nav-container .nav-icon {
+    font-size: 1.6rem;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 0 5px rgba(163, 59, 255, 0.3));
+}
+
+.nav-container .nav-link:hover .nav-icon {
+    transform: scale(1.2) rotate(5deg);
+}
+
+.nav-container .nav-link.active .nav-icon {
+    filter: drop-shadow(0 0 8px rgba(163, 59, 255, 0.6));
 }
 
 .nav-link {
@@ -185,6 +298,14 @@ main {
     overflow: visible; /* Permitir scroll normal */
 }
 
+/* Padronizar padding para todas as páginas */
+.stock-page,
+.search-page,
+.favorites-page,
+.logs-container {
+    padding-top: 120px !important;
+}
+
 /* Summon Page */
 #summon-page {
     width: 100%;
@@ -245,6 +366,7 @@ main {
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     max-width: 100%;
     box-sizing: border-box;
+    z-index: 1; /* Z-index base para o container */
 }
 
 .carousel {
@@ -273,33 +395,65 @@ main {
     transition: all 0.3s ease;
     transform-origin: center center;
     will-change: transform, opacity, box-shadow;
+    z-index: 1; /* Z-index base para todos os cards */
+    /* Otimizações para mobile */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+    perspective: 1000px;
 }
 
-/* Animação de deslizamento para revelação */
+/* Animação de deslizamento para revelação - otimizada para performance */
 .carousel-card.revealing {
-    animation: card-slide-reveal 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: card-slide-reveal 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    will-change: transform, opacity;
+    z-index: 5; /* Z-index temporário durante a animação */
 }
 
 @keyframes card-slide-reveal {
     0% {
-        transform: translateX(-120%) scale(0.7);
+        transform: translateX(-100%) scale(0.8);
         opacity: 0;
     }
     30% {
-        transform: translateX(-40%) scale(0.85);
-        opacity: 0.4;
+        transform: translateX(-30%) scale(0.9);
+        opacity: 0.5;
     }
     60% {
-        transform: translateX(3%) scale(1.03);
+        transform: translateX(-5%) scale(0.98);
         opacity: 0.8;
-    }
-    80% {
-        transform: translateX(-1%) scale(1.01);
-        opacity: 0.95;
     }
     100% {
         transform: translateX(0) scale(1);
         opacity: 1;
+    }
+}
+
+/* Otimização para mobile */
+@media (max-width: 768px) {
+    .carousel-card.revealing {
+        animation-duration: 0.4s;
+    }
+    
+    @keyframes card-slide-reveal {
+        0% {
+            transform: translateX(-100%) scale(0.8);
+            opacity: 0;
+        }
+        40% {
+            transform: translateX(-20%) scale(0.9);
+            opacity: 0.6;
+        }
+        80% {
+            transform: translateX(-2%) scale(0.98);
+            opacity: 0.9;
+        }
+        100% {
+            transform: translateX(0) scale(1);
+            opacity: 1;
+        }
     }
 }
 
@@ -907,7 +1061,7 @@ main {
 @media (max-width: 480px) {
     body {
         overflow-x: hidden;
-        overflow-y: auto; /* Garantir scroll vertical no mobile */
+        overflow-y: auto;
         width: 100%;
         font-size: 13px;
     }
@@ -918,42 +1072,108 @@ main {
         max-width: 100vw;
     }
     
-    /* Ocultar apenas o header, mas não a nav */
+    /* Ocultar apenas o header, mas não a nav - PADRÃO PARA TODAS AS PÁGINAS */
     .main-header {
         display: none;
     }
     
-    /* Mostrar botão de menu mobile */
-    .mobile-menu-toggle {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
+    /* Padronizar padding para todas as páginas no mobile */
+    .stock-page,
+    .search-page,
+    .favorites-page,
+    .logs-container {
+        padding-top: 2rem !important;
     }
     
-    /* Criar navbar mobile independente */
+    /* Mostrar botão de menu mobile com design melhorado */
+.mobile-menu-toggle {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(135deg, rgba(163, 59, 255, 0.3), rgba(255, 59, 157, 0.3));
+    border: 2px solid rgba(163, 59, 255, 0.8);
+    border-radius: 12px;
+    padding: 0.8rem;
+    z-index: 1001;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(163, 59, 255, 0.3);
+}
+    
+    .mobile-menu-toggle:hover {
+        border-color: var(--primary);
+        box-shadow: 0 0 20px rgba(163, 59, 255, 0.5);
+        transform: scale(1.05);
+    }
+    
+    .mobile-menu-toggle.active {
+        background: linear-gradient(135deg, rgba(163, 59, 255, 0.3), rgba(255, 59, 157, 0.3));
+        border-color: var(--primary);
+        box-shadow: 0 0 25px rgba(163, 59, 255, 0.6);
+    }
+    
+    .hamburger-line {
+        width: 22px;
+        height: 2px;
+        background: var(--text-primary);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 1px;
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    }
+    
+    .mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+        transform: rotate(45deg) translate(6px, 6px);
+        background: var(--primary);
+    }
+    
+    .mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+        opacity: 0;
+        transform: scale(0);
+    }
+    
+    .mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+        transform: rotate(-45deg) translate(6px, -6px);
+        background: var(--primary);
+    }
+    
+    /* Navbar mobile com design melhorado e mais responsivo */
     .nav-container {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
-        background: rgba(10, 10, 20, 0.98);
-        backdrop-filter: blur(25px);
-        border-bottom: 2px solid rgba(163, 59, 255, 0.3);
+        background: linear-gradient(135deg, rgba(10, 10, 20, 0.98), rgba(26, 26, 46, 0.98));
+        backdrop-filter: blur(30px);
+        border-bottom: 2px solid rgba(163, 59, 255, 0.4);
         flex-direction: column;
         display: flex;
-        gap: 1rem;
-        padding: 5rem 2rem 2rem;
+        gap: 0.8rem;
+        padding: 4rem 1.5rem 2rem; /* Reduzido para ficar igual às outras páginas */
         transform: translateY(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.6),
+            0 0 0 1px rgba(163, 59, 255, 0.1);
         z-index: 999;
         justify-content: flex-start;
         align-items: stretch;
+        max-height: 100vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .nav-container.active {
         transform: translateY(0) !important;
+        box-shadow: 
+            0 12px 40px rgba(0, 0, 0, 0.7),
+            0 0 0 1px rgba(163, 59, 255, 0.2);
     }
     
     .nav-container .nav-link {
@@ -962,40 +1182,72 @@ main {
         width: 100%;
         text-decoration: none;
         color: var(--text-primary);
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        transition: all 0.3s ease;
+        padding: 1.2rem 1.5rem;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        background: rgba(255, 255, 255, 0.05);
+        gap: 1rem;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
         border: 1px solid rgba(163, 59, 255, 0.2);
         font-size: 1.1rem;
-        margin-bottom: 0.5rem;
+        font-weight: 500;
+        margin-bottom: 0.3rem;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+    
+    .nav-container .nav-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(163, 59, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .nav-container .nav-link:hover::before {
+        left: 100%;
     }
     
     .nav-container .nav-link:hover {
-        background: rgba(163, 59, 255, 0.2);
-        border-color: rgba(163, 59, 255, 0.5);
-        transform: translateX(5px);
+        background: linear-gradient(135deg, rgba(163, 59, 255, 0.15), rgba(255, 59, 157, 0.1));
+        border-color: rgba(163, 59, 255, 0.4);
+        transform: translateX(8px) scale(1.02);
+        box-shadow: 0 4px 20px rgba(163, 59, 255, 0.2);
     }
     
     .nav-container .nav-link.active {
-        background: rgba(163, 59, 255, 0.3);
+        background: linear-gradient(135deg, rgba(163, 59, 255, 0.25), rgba(255, 59, 157, 0.15));
         border-color: var(--primary);
         color: var(--primary);
+        box-shadow: 0 0 20px rgba(163, 59, 255, 0.3);
+        transform: translateX(5px);
     }
     
     .nav-container .nav-icon {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
+        transition: transform 0.3s ease;
+        filter: drop-shadow(0 0 5px rgba(163, 59, 255, 0.3));
+    }
+    
+    .nav-container .nav-link:hover .nav-icon {
+        transform: scale(1.2) rotate(5deg);
+    }
+    
+    .nav-container .nav-link.active .nav-icon {
+        filter: drop-shadow(0 0 8px rgba(163, 59, 255, 0.6));
     }
     
     main {
-        padding-top: 2rem; /* Reduzido já que navbar está oculta */
+        padding-top: 2rem;
         width: 100%;
         max-width: 100vw;
         overflow-x: hidden;
-        overflow-y: visible; /* Permitir scroll vertical */
+        overflow-y: visible;
     }
     
     .summon-content {
@@ -1015,7 +1267,7 @@ main {
         padding: 1.2rem 2.5rem;
         font-size: 1.3rem;
         margin-top: 1.5rem;
-        min-height: 60px; /* Mínimo para touch targets */
+        min-height: 60px;
         min-width: 200px;
         max-width: 90vw;
     }
@@ -1029,6 +1281,70 @@ main {
         width: 100%;
         max-width: 100vw;
         overflow: hidden;
+    }
+    
+    /* Melhorias para telas muito pequenas */
+    @media (max-width: 360px) {
+        .mobile-menu-toggle {
+            top: 0.8rem;
+            right: 0.8rem;
+            padding: 0.6rem;
+        }
+        
+        .hamburger-line {
+            width: 18px;
+            height: 2px;
+        }
+        
+        .nav-container {
+            padding: 4rem 1rem 1.5rem; /* Ajustado para manter consistência */
+            gap: 0.6rem;
+        }
+        
+        .nav-container .nav-link {
+            padding: 1rem 1.2rem;
+            font-size: 1rem;
+            gap: 0.8rem;
+        }
+        
+        .nav-container .nav-icon {
+            font-size: 1.4rem;
+        }
+        
+        .summon-content {
+            padding: 0.3rem;
+            gap: 0.8rem;
+        }
+        
+        .info-panel {
+            max-width: 300px;
+            padding: 1.5rem;
+        }
+        
+        #summon-button {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            min-width: 180px;
+        }
+    }
+    
+    /* Melhorias para orientação landscape no mobile */
+    @media (max-width: 768px) and (orientation: landscape) {
+        .nav-container {
+            padding: 3rem 2rem 1.5rem; /* Ajustado para manter consistência */
+            max-height: 80vh;
+        }
+        
+        .nav-container .nav-link {
+            padding: 0.8rem 1.2rem;
+            font-size: 1rem;
+        }
+        
+        .mobile-menu-toggle {
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.6rem;
+        }
     }
 }
 
@@ -2141,6 +2457,22 @@ main {
 
 .site-notice span {
     line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.notice-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    border-radius: 2px;
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
+}
+
+.notice-icon:hover {
+    opacity: 1;
 }
 
 .close-notice {
@@ -2155,6 +2487,25 @@ main {
 
 .close-notice:hover {
     color: var(--secondary);
+}
+
+/* Responsividade para o ícone do aviso */
+@media (max-width: 768px) {
+    .notice-icon {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notice-icon {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .site-notice span {
+        gap: 0.4rem;
+    }
 }
 
 /* ===== ANIMAÇÃO DE REVELAÇÃO DO NOME ===== */

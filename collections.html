@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collections - Gacha Invocação</title>
+    <meta name="description" content="Gerencie suas collections de personagens de anime">
+    <link rel="icon" type="image/png" href="icone anime.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/collections.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-pattern"></div>
+    <div class="gradient-overlay"></div>
+    
+    <!-- Include Navbar -->
+    <div id="navbar-container"></div>
+
+    <main class="collections-page">
+        <!-- Lista de Collections -->
+        <div id="collections-list" class="collections-list-view">
+            <div class="collections-header">
+                <div class="header-content">
+                    <h1 class="page-title">Collections</h1>
+                    <p class="page-subtitle">Organize seus personagens favoritos em collections personalizadas</p>
+                </div>
+                <div class="header-actions">
+                    <button class="create-collection-btn" id="create-collection-btn">
+                        <span class="btn-icon">➕</span>
+                        <span class="btn-text">Criar Collection</span>
+                    </button>
+                    <button class="delete-collection-btn" id="delete-collection-btn">
+                        <span class="btn-icon">🗑️</span>
+                        <span class="btn-text">Excluir</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="collections-grid" class="collections-grid">
+                <!-- Collections serão carregadas aqui -->
+            </div>
+        </div>
+
+        <!-- Detalhes da Collection -->
+        <div id="collection-detail" class="collection-detail-view" style="display: none;">
+            <div id="collection-detail-content">
+                <!-- Conteúdo dos detalhes será carregado aqui -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Criação/Edição -->
+    <div id="collection-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modal-title">Criar Collection</h2>
+                    <button class="modal-close" id="modal-close" aria-label="Fechar" tabindex="0">
+                        <span>×</span>
+                    </button>
+                </div>
+                
+                <form id="collection-form" class="collection-form">
+                    <div class="form-group">
+                        <label for="collection-name" class="form-label">Nome da Collection *</label>
+                        <input type="text" id="collection-name" class="form-input" placeholder="Ex: Personagens Favoritos" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="collection-subtitle" class="form-label">Subtítulo (opcional)</label>
+                        <input type="text" id="collection-subtitle" class="form-input" placeholder="Ex: Meus personagens preferidos">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="collection-banner" class="form-label">Banner (opcional)</label>
+                        <div class="file-upload-container">
+                            <input type="file" id="collection-banner" class="file-input" accept="image/*">
+                            <label for="collection-banner" class="file-upload-label">
+                                <div class="upload-icon">📁</div>
+                                <div class="upload-text">
+                                    <span class="upload-title">Escolher imagem</span>
+                                    <span class="upload-subtitle">Qualquer formato - será adaptado automaticamente</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="banner-info">
+                            <p class="banner-info-text">
+                                <span class="info-icon">💡</span>
+                                Qualquer formato de imagem é aceito. A imagem será exibida intacta e centralizada, com fundo borrado espelhado para preencher o espaço restante.
+                            </p>
+                        </div>
+                        <div id="banner-preview" class="banner-preview" style="display: none;">
+                            <div class="preview-banner-container">
+                                <div class="preview-banner-background"></div>
+                                <img class="preview-banner-image" alt="Preview">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="modal-cancel">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="modal-save">Criar Collection</button>
+                    </div>
+                    
+                    <div class="form-delete-section" id="form-delete-section" style="display: none;">
+                        <div class="delete-divider"></div>
+                        <button type="button" class="btn btn-danger" id="modal-delete">🗑️ Excluir Collection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="delete-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-card delete-modal-card">
+                <div class="modal-header">
+                    <h2 class="modal-title">Confirmar Exclusão</h2>
+                    <button class="modal-close" id="delete-modal-close" aria-label="Fechar" tabindex="0">
+                        <span>×</span>
+                    </button>
+                </div>
+                
+                <div class="delete-content">
+                    <div class="delete-icon">🗑️</div>
+                    <p class="delete-message">
+                        Tem certeza que deseja excluir a collection "<span id="delete-collection-name"></span>"?
+                    </p>
+                    <p class="delete-warning">Esta ação não pode ser desfeita.</p>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="btn btn-secondary" id="delete-cancel">Cancelar</button>
+                    <button class="btn btn-danger" id="delete-confirm">Excluir Collection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Seleção para Deletar Collection -->
+    <div id="delete-selection-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-card delete-selection-modal-card">
+                <div class="modal-header">
+                    <h2 class="modal-title">Selecionar Collection para Excluir</h2>
+                    <button class="modal-close" id="delete-selection-modal-close" aria-label="Fechar" tabindex="0">
+                        <span>×</span>
+                    </button>
+                </div>
+                
+                <div class="delete-selection-content">
+                    <p class="delete-selection-message">Escolha uma collection para excluir:</p>
+                    <div id="delete-selection-grid" class="delete-selection-grid">
+                        <!-- Collections serão carregadas aqui -->
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="btn btn-secondary" id="delete-selection-cancel">Cancelar</button>
+                    <button class="btn btn-danger" id="delete-selection-confirm" disabled>Excluir Collection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Personagem -->
+    <div id="character-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-card character-modal-card">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="character-modal-title">Detalhes do Personagem</h2>
+                    <button class="modal-close" id="character-modal-close" aria-label="Fechar" tabindex="0">
+                        <span>×</span>
+                    </button>
+                </div>
+                
+                <div class="character-modal-content">
+                    <div class="character-modal-image-container">
+                        <img id="character-modal-image" src="" alt="" class="character-modal-image">
+                    </div>
+                    
+                    <div class="character-modal-info">
+                        <h3 id="character-modal-name" class="character-modal-name"></h3>
+                        <p id="character-modal-anime" class="character-modal-anime"></p>
+                    </div>
+                    
+                    <div class="character-modal-actions">
+                        <div class="image-upload-section">
+                            <label for="character-image-upload" class="image-upload-label">
+                                <span class="upload-icon">📁</span>
+                                <span class="upload-text">Alterar Imagem</span>
+                            </label>
+                            <input type="file" id="character-image-upload" class="image-upload-input" accept="image/*">
+                        </div>
+                        
+                        <button class="btn btn-danger" id="remove-character-btn">
+                            <span>🗑️</span>
+                            Remover da Collection
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dataManager.js"></script>
+    <script src="js/collections-system.js"></script>
+    <script src="js/navbar.js"></script>
+    
+    <script>
+        // Load navbar
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('navbar-container').innerHTML = html;
+                // Initialize navbar after loading
+                if (window.Navbar) {
+                    new window.Navbar();
+                }
+            })
+            .catch(error => console.error('Error loading navbar:', error));
+    </script>
+    
+    <script>
+        // Estado da aplicação
+        let currentCollectionId = null;
+        let isEditing = false;
+
+        // Elementos DOM
+        const collectionsList = document.getElementById('collections-list');
+        const collectionDetail = document.getElementById('collection-detail');
+        const collectionsGrid = document.getElementById('collections-grid');
+        const createCollectionBtn = document.getElementById('create-collection-btn');
+        const deleteCollectionBtn = document.getElementById('delete-collection-btn');
+        const collectionModal = document.getElementById('collection-modal');
+        const deleteModal = document.getElementById('delete-modal');
+        const collectionForm = document.getElementById('collection-form');
+        const modalTitle = document.getElementById('modal-title');
+        const collectionNameInput = document.getElementById('collection-name');
+        const collectionSubtitleInput = document.getElementById('collection-subtitle');
+        const collectionBannerInput = document.getElementById('collection-banner');
+        const bannerPreview = document.getElementById('banner-preview');
+        const modalClose = document.getElementById('modal-close');
+        const modalCancel = document.getElementById('modal-cancel');
+        const modalSave = document.getElementById('modal-save');
+        const deleteModalClose = document.getElementById('delete-modal-close');
+        const deleteCancel = document.getElementById('delete-cancel');
+        const deleteConfirm = document.getElementById('delete-confirm');
+        const deleteCollectionName = document.getElementById('delete-collection-name');
+        
+        // Modal de personagem
+        const characterModal = document.getElementById('character-modal');
+        const characterModalClose = document.getElementById('character-modal-close');
+        const characterModalImage = document.getElementById('character-modal-image');
+        const characterModalName = document.getElementById('character-modal-name');
+        const characterModalAnime = document.getElementById('character-modal-anime');
+        const characterImageUpload = document.getElementById('character-image-upload');
+        const removeCharacterBtn = document.getElementById('remove-character-btn');
+        const formDeleteSection = document.getElementById('form-delete-section');
+        const modalDelete = document.getElementById('modal-delete');
+        
+        // Modal de seleção para deletar
+        const deleteSelectionModal = document.getElementById('delete-selection-modal');
+        const deleteSelectionModalClose = document.getElementById('delete-selection-modal-close');
+        const deleteSelectionCancel = document.getElementById('delete-selection-cancel');
+        const deleteSelectionConfirm = document.getElementById('delete-selection-confirm');
+        const deleteSelectionGrid = document.getElementById('delete-selection-grid');
+        
+        // Estado do modal de personagem
+        let currentCharacterData = null;
+        let selectedCollectionToDelete = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCollections();
+            setupEventListeners();
+            
+            // Verificar se há ID na URL para mostrar detalhes
+            const urlParams = new URLSearchParams(window.location.search);
+            const collectionId = urlParams.get('id');
+            if (collectionId) {
+                showCollectionDetail(collectionId);
+            }
+        });
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Botões principais
+            createCollectionBtn.addEventListener('click', showCreateModal);
+            deleteCollectionBtn.addEventListener('click', showDeleteSelectionModal);
+            
+            // Modal de criação/edição
+            modalClose.addEventListener('click', hideModal);
+            modalCancel.addEventListener('click', hideModal);
+            modalSave.addEventListener('click', handleFormSubmit);
+            collectionForm.addEventListener('submit', handleFormSubmit);
+            
+            // Preview de banner
+            collectionBannerInput.addEventListener('change', handleBannerPreview);
+            
+            // Modal de exclusão
+            deleteModalClose.addEventListener('click', hideDeleteModal);
+            deleteCancel.addEventListener('click', hideDeleteModal);
+            deleteConfirm.addEventListener('click', handleDeleteCollection);
+            
+            // Modal de personagem
+            characterModalClose.addEventListener('click', hideCharacterModal);
+            characterImageUpload.addEventListener('change', handleCharacterImageUpload);
+            removeCharacterBtn.addEventListener('click', handleRemoveCharacter);
+            
+            // Botão de deletar no modal de edição
+            modalDelete.addEventListener('click', () => {
+                hideModal();
+                showDeleteModal(currentCollectionId);
+            });
+            
+            // Modal de seleção para deletar
+            deleteSelectionModalClose.addEventListener('click', hideDeleteSelectionModal);
+            deleteSelectionCancel.addEventListener('click', hideDeleteSelectionModal);
+            deleteSelectionConfirm.addEventListener('click', handleDeleteSelectedCollection);
+            
+            // Fechar modais ao clicar fora
+            collectionModal.addEventListener('click', (e) => {
+                if (e.target === collectionModal) hideModal();
+            });
+            deleteModal.addEventListener('click', (e) => {
+                if (e.target === deleteModal) hideDeleteModal();
+            });
+            deleteSelectionModal.addEventListener('click', (e) => {
+                if (e.target === deleteSelectionModal) hideDeleteSelectionModal();
+            });
+            characterModal.addEventListener('click', (e) => {
+                if (e.target === characterModal) hideCharacterModal();
+            });
+            
+            // Evento de mudança nas collections
+            window.addEventListener('collectionsChanged', () => {
+                loadCollections();
+            });
+        }
+
+        // Carregar collections
+        function loadCollections() {
+            const collections = window.collectionsSystem.listCollections();
+            
+            if (collections.length === 0) {
+                collectionsGrid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-illustration">
+                            <div class="empty-state-icon">🗂️</div>
+                            <div class="empty-state-glow"></div>
+                        </div>
+                        <h3 class="empty-state-title">Nenhuma Collection</h3>
+                        <p class="empty-state-text">Crie sua primeira collection para organizar seus personagens favoritos!</p>
+                        <button class="btn btn-primary empty-state-btn" onclick="showCreateModal()">
+                            <span class="btn-icon">➕</span>
+                            <span class="btn-text">Criar Collection</span>
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            collectionsGrid.innerHTML = collections.map(collection => `
+                <div class="collection-card" onclick="showCollectionDetail('${collection.id}')">
+                    <div class="collection-banner">
+                        ${collection.banner ? 
+                            `<div class="banner-background" style="background-image: url('${collection.banner.dataUrl}')"></div>
+                             <img src="${collection.banner.dataUrl}" alt="${collection.name}" loading="lazy" class="banner-main-image">` :
+                            `<div class="collection-banner-placeholder">🗂️</div>`
+                        }
+                        <div class="collection-overlay"></div>
+                        <div class="collection-badge">
+                            <span class="badge-count">${collection.items.length}</span>
+                        </div>
+                    </div>
+                    <div class="collection-content">
+                        <h3 class="collection-name">${escapeHtml(collection.name)}</h3>
+                        ${collection.subtitle ? `<p class="collection-subtitle">${escapeHtml(collection.subtitle)}</p>` : ''}
+                        <div class="collection-meta">
+                            <span class="collection-date">${formatDate(collection.createdAt)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Mostrar lista de collections
+        function showCollectionsList() {
+            collectionsList.style.display = 'block';
+            collectionDetail.style.display = 'none';
+            currentCollectionId = null;
+            window.history.pushState({}, '', 'collections.html');
+        }
+
+        // Mostrar detalhes da collection
+        function showCollectionDetail(collectionId) {
+            const collection = window.collectionsSystem.getCollection(collectionId);
+            if (!collection) {
+                showCollectionsList();
+                return;
+            }
+
+            currentCollectionId = collectionId;
+            collectionsList.style.display = 'none';
+            collectionDetail.style.display = 'block';
+            
+            // Atualizar URL
+            window.history.pushState({}, '', `collections.html?id=${collectionId}`);
+
+            const detailContent = document.getElementById('collection-detail-content');
+            detailContent.innerHTML = `
+                <!-- Banner em largura total -->
+                <div class="collection-showcase-banner">
+                    ${collection.banner ? 
+                        `<div class="showcase-banner-background" style="background-image: url('${collection.banner.dataUrl}')"></div>
+                         <img src="${collection.banner.dataUrl}" alt="${collection.name}" class="showcase-banner-image">` :
+                        `<div class="showcase-banner-placeholder">🗂️</div>`
+                    }
+                    <div class="banner-overlay">
+                        <div class="banner-content">
+                            <h1 class="banner-title">${escapeHtml(collection.name)}</h1>
+                            ${collection.subtitle ? `<p class="banner-subtitle">${escapeHtml(collection.subtitle)}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="banner-actions">
+                        <button class="banner-action-btn edit-btn" onclick="showEditModal('${collection.id}')">
+                            <span class="action-icon">✏️</span>
+                            <span class="action-label">Editar</span>
+                        </button>
+                        <button class="banner-action-btn delete-btn" onclick="showDeleteModal('${collection.id}')">
+                            <span class="action-icon">🗑️</span>
+                            <span class="action-label">Excluir</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Botão voltar -->
+                <div class="showcase-back-button">
+                    <button class="back-btn" onclick="showCollectionsList()">
+                        <span class="back-icon">←</span>
+                        <span class="back-text">Voltar às Collections</span>
+                    </button>
+                </div>
+
+                <!-- Grid de personagens -->
+                <div class="showcase-gallery">
+                    ${collection.items.length > 0 ? `
+                        <div class="gallery-grid">
+                            ${collection.items.map(item => `
+                                <div class="gallery-card" onclick="showCharacterModal('${collection.id}', '${escapeHtml(item.name)}', '${escapeHtml(item.anime)}')">
+                                    <div class="gallery-image">
+                                        <img src="${item.image}" alt="${item.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect width=%22100%22 height=%22100%22 fill=%22%23666%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22>?</text></svg>'">
+                                    </div>
+                                    <div class="gallery-info">
+                                        <h3 class="gallery-character-name">${escapeHtml(item.name)}</h3>
+                                        <p class="gallery-anime-name">${escapeHtml(item.anime)}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="empty-gallery">
+                            <div class="empty-gallery-illustration">
+                                <div class="empty-gallery-icon">📦</div>
+                                <div class="empty-gallery-glow"></div>
+                            </div>
+                            <h3 class="empty-gallery-title">Collection Vazia</h3>
+                            <p class="empty-gallery-text">Esta collection ainda não possui personagens. Adicione personagens da sua coleção!</p>
+                            <button class="btn btn-primary empty-gallery-btn" onclick="window.location.href='stock.html'">
+                                <span class="btn-icon">➕</span>
+                                <span class="btn-text">Adicionar Personagens</span>
+                            </button>
+                        </div>
+                    `}
+                </div>
+
+                <!-- Footer com metadados -->
+                <div class="showcase-footer">
+                    <div class="showcase-metadata">
+                        <span class="metadata-item">Criada em: ${formatDate(collection.createdAt)}</span>
+                        <span class="metadata-item">Personagens: ${collection.items.length}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Mostrar modal de criação
+        function showCreateModal() {
+            isEditing = false;
+            modalTitle.textContent = 'Criar Collection';
+            modalSave.textContent = 'Criar Collection';
+            collectionForm.reset();
+            bannerPreview.style.display = 'none';
+            bannerPreview.innerHTML = '';
+            
+            // Esconder seção de deletar
+            formDeleteSection.style.display = 'none';
+            
+            showModal();
+        }
+
+        // Mostrar modal de edição
+        function showEditModal(collectionId) {
+            const collection = window.collectionsSystem.getCollection(collectionId);
+            if (!collection) return;
+
+            isEditing = true;
+            currentCollectionId = collectionId;
+            modalTitle.textContent = 'Editar Collection';
+            modalSave.textContent = 'Salvar Alterações';
+            
+            collectionNameInput.value = collection.name;
+            collectionSubtitleInput.value = collection.subtitle || '';
+            
+            if (collection.banner) {
+                bannerPreview.style.display = 'block';
+                const backgroundDiv = bannerPreview.querySelector('.preview-banner-background');
+                const imageElement = bannerPreview.querySelector('.preview-banner-image');
+                
+                backgroundDiv.style.backgroundImage = `url('${collection.banner.dataUrl}')`;
+                imageElement.src = collection.banner.dataUrl;
+            } else {
+                bannerPreview.style.display = 'none';
+            }
+            
+            // Mostrar seção de deletar
+            formDeleteSection.style.display = 'block';
+            
+            showModal();
+        }
+
+        // Mostrar modal
+        function showModal() {
+            collectionModal.style.display = 'flex';
+            collectionNameInput.focus();
+        }
+
+        // Esconder modal
+        function hideModal() {
+            collectionModal.style.display = 'none';
+            collectionForm.reset();
+            bannerPreview.style.display = 'none';
+            
+            // Limpar preview
+            const backgroundDiv = bannerPreview.querySelector('.preview-banner-background');
+            const imageElement = bannerPreview.querySelector('.preview-banner-image');
+            if (backgroundDiv) backgroundDiv.style.backgroundImage = '';
+            if (imageElement) imageElement.src = '';
+        }
+
+        // Mostrar modal de exclusão
+        function showDeleteModal(collectionId) {
+            const collection = window.collectionsSystem.getCollection(collectionId);
+            if (!collection) return;
+
+            currentCollectionId = collectionId;
+            deleteCollectionName.textContent = collection.name;
+            deleteModal.style.display = 'flex';
+        }
+
+        // Esconder modal de exclusão
+        function hideDeleteModal() {
+            deleteModal.style.display = 'none';
+            currentCollectionId = null;
+        }
+        
+        // Mostrar modal de seleção para deletar
+        function showDeleteSelectionModal() {
+            const collections = window.collectionsSystem.listCollections();
+            
+            if (collections.length === 0) {
+                alert('Não há collections para excluir.');
+                return;
+            }
+            
+            selectedCollectionToDelete = null;
+            deleteSelectionConfirm.disabled = true;
+            
+            // Renderizar grid de collections
+            deleteSelectionGrid.innerHTML = collections.map(collection => `
+                <div class="delete-selection-card" onclick="selectCollectionToDelete('${collection.id}')">
+                    <div class="delete-selection-banner">
+                        ${collection.banner ? 
+                            `<img src="${collection.banner.dataUrl}" alt="${collection.name}">` :
+                            `<div class="delete-selection-placeholder">🗂️</div>`
+                        }
+                    </div>
+                    <div class="delete-selection-info">
+                        <h3 class="delete-selection-name">${escapeHtml(collection.name)}</h3>
+                        ${collection.subtitle ? `<p class="delete-selection-subtitle">${escapeHtml(collection.subtitle)}</p>` : ''}
+                        <span class="delete-selection-count">${collection.items.length} personagens</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            deleteSelectionModal.style.display = 'flex';
+        }
+        
+        // Esconder modal de seleção para deletar
+        function hideDeleteSelectionModal() {
+            deleteSelectionModal.style.display = 'none';
+            selectedCollectionToDelete = null;
+            deleteSelectionConfirm.disabled = true;
+        }
+        
+        // Selecionar collection para deletar
+        function selectCollectionToDelete(collectionId) {
+            selectedCollectionToDelete = collectionId;
+            deleteSelectionConfirm.disabled = false;
+            
+            // Atualizar seleção visual
+            document.querySelectorAll('.delete-selection-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            const selectedCard = document.querySelector(`[onclick="selectCollectionToDelete('${collectionId}')"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
+        }
+        
+        // Deletar collection selecionada
+        function handleDeleteSelectedCollection() {
+            if (!selectedCollectionToDelete) return;
+            
+            const collection = window.collectionsSystem.getCollection(selectedCollectionToDelete);
+            if (!collection) return;
+            
+            if (confirm(`Tem certeza que deseja excluir a collection "${collection.name}"? Esta ação não pode ser desfeita.`)) {
+                try {
+                    window.collectionsSystem.deleteCollection(selectedCollectionToDelete);
+                    hideDeleteSelectionModal();
+                    loadCollections();
+                } catch (error) {
+                    alert(`Erro ao excluir collection: ${error.message}`);
+                }
+            }
+        }
+
+        // Manipular preview do banner
+        function handleBannerPreview(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                bannerPreview.style.display = 'none';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                bannerPreview.style.display = 'block';
+                const backgroundDiv = bannerPreview.querySelector('.preview-banner-background');
+                const imageElement = bannerPreview.querySelector('.preview-banner-image');
+                
+                backgroundDiv.style.backgroundImage = `url('${e.target.result}')`;
+                imageElement.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Manipular envio do formulário
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const name = collectionNameInput.value.trim();
+            const subtitle = collectionSubtitleInput.value.trim();
+            const bannerFile = collectionBannerInput.files[0];
+
+            if (!name) {
+                alert('Por favor, insira um nome para a collection.');
+                return;
+            }
+
+            try {
+                modalSave.disabled = true;
+                modalSave.textContent = isEditing ? 'Salvando...' : 'Criando...';
+
+                if (isEditing) {
+                    await window.collectionsSystem.updateCollection(currentCollectionId, {
+                        name,
+                        subtitle: subtitle || undefined,
+                        bannerFile: bannerFile || undefined
+                    });
+                } else {
+                    await window.collectionsSystem.createCollection({
+                        name,
+                        subtitle: subtitle || undefined,
+                        bannerFile: bannerFile || undefined
+                    });
+                }
+
+                hideModal();
+                
+                // Se estivermos editando, recarregar os detalhes
+                if (isEditing && currentCollectionId) {
+                    showCollectionDetail(currentCollectionId);
+                }
+                
+            } catch (error) {
+                alert(`Erro: ${error.message}`);
+            } finally {
+                modalSave.disabled = false;
+                modalSave.textContent = isEditing ? 'Salvar Alterações' : 'Criar Collection';
+            }
+        }
+
+        // Manipular exclusão da collection
+        async function handleDeleteCollection() {
+            if (!currentCollectionId) return;
+
+            try {
+                deleteConfirm.disabled = true;
+                deleteConfirm.textContent = 'Excluindo...';
+
+                window.collectionsSystem.deleteCollection(currentCollectionId);
+                hideDeleteModal();
+                showCollectionsList();
+                
+            } catch (error) {
+                alert(`Erro ao excluir collection: ${error.message}`);
+            } finally {
+                deleteConfirm.disabled = false;
+                deleteConfirm.textContent = 'Excluir Collection';
+            }
+        }
+
+        // Funções utilitárias
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        // Manipular navegação do browser
+        window.addEventListener('popstate', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const collectionId = urlParams.get('id');
+            
+            if (collectionId) {
+                showCollectionDetail(collectionId);
+            } else {
+                showCollectionsList();
+            }
+        });
+
+        // Mostrar modal de personagem
+        function showCharacterModal(collectionId, characterName, characterAnime) {
+            const collection = window.collectionsSystem.getCollection(collectionId);
+            if (!collection) return;
+            
+            const character = collection.items.find(item => 
+                item.name === characterName && item.anime === characterAnime
+            );
+            
+            if (!character) return;
+            
+            currentCharacterData = {
+                collectionId,
+                characterName,
+                characterAnime,
+                currentImage: character.image
+            };
+            
+            characterModalImage.src = character.image;
+            characterModalImage.alt = character.name;
+            characterModalName.textContent = character.name;
+            characterModalAnime.textContent = character.anime;
+            
+            characterModal.style.display = 'flex';
+        }
+        
+        // Esconder modal de personagem
+        function hideCharacterModal() {
+            characterModal.style.display = 'none';
+            currentCharacterData = null;
+            characterImageUpload.value = '';
+        }
+        
+        // Manipular upload de imagem do personagem
+        async function handleCharacterImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file || !currentCharacterData) return;
+            
+            try {
+                const dataUrl = await processImageFile(file);
+                
+                // Atualizar imagem no sistema
+                await window.collectionsSystem.updateCharacterImage(
+                    currentCharacterData.collectionId,
+                    {
+                        name: currentCharacterData.characterName,
+                        anime: currentCharacterData.characterAnime
+                    },
+                    dataUrl
+                );
+                
+                // Atualizar imagem no modal
+                characterModalImage.src = dataUrl;
+                currentCharacterData.currentImage = dataUrl;
+                
+                // Recarregar detalhes da collection
+                if (currentCollectionId) {
+                    showCollectionDetail(currentCollectionId);
+                }
+                
+            } catch (error) {
+                alert(`Erro ao processar imagem: ${error.message}`);
+            }
+        }
+        
+        // Remover personagem da collection
+        async function handleRemoveCharacter() {
+            if (!currentCharacterData) return;
+            
+            if (confirm('Tem certeza que deseja remover este personagem da collection?')) {
+                try {
+                    window.collectionsSystem.removeCharacterFromCollection(
+                        currentCharacterData.collectionId,
+                        {
+                            name: currentCharacterData.characterName,
+                            anime: currentCharacterData.characterAnime
+                        }
+                    );
+                    
+                    hideCharacterModal();
+                    
+                    // Recarregar detalhes da collection
+                    if (currentCollectionId) {
+                        showCollectionDetail(currentCollectionId);
+                    }
+                    
+                } catch (error) {
+                    alert(`Erro ao remover personagem: ${error.message}`);
+                }
+            }
+        }
+        
+        // Processar arquivo de imagem
+        function processImageFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Manter proporção original
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Converter para dataURL com qualidade 0.85
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = () => reject(new Error('Erro ao carregar imagem'));
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>

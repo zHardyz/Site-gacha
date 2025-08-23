@@ -167,25 +167,45 @@
     position: absolute;
     top: 15px;
     right: 15px;
-    width: 40px;
-    height: 40px;
-    background: rgba(0, 0, 0, 0.7);
-    border: none;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     color: white;
     font-size: 20px;
+    font-weight: bold;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10001;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    outline: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .modal-close:hover {
-    background: rgba(255, 0, 0, 0.7);
+    background: rgba(239, 68, 68, 0.9);
+    border-color: rgba(239, 68, 68, 0.6);
     transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+}
+
+.modal-close:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+.modal-close:focus {
+    outline: 2px solid rgba(99, 102, 241, 0.6);
+    outline-offset: 2px;
+    background: rgba(239, 68, 68, 0.9);
+    border-color: rgba(239, 68, 68, 0.6);
 }
 
 /* Banner do Anime */
@@ -1010,5 +1030,54 @@
     .favorites-grid .compact-rarity {
         font-size: 0.45rem;
         padding: 0.1rem 0.25rem;
+    }
+}
+
+/* === RESPONSIVIDADE DO BOTÃO DE FECHAR DO MODAL === */
+
+@media (max-width: 768px) {
+    .modal-close {
+        top: 12px;
+        right: 12px;
+        min-width: 40px;
+        min-height: 40px;
+        padding: 8px;
+        font-size: 18px;
+    }
+    
+    .modal-close:hover {
+        transform: scale(1.05);
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-close {
+        top: 10px;
+        right: 10px;
+        min-width: 36px;
+        min-height: 36px;
+        padding: 6px;
+        font-size: 16px;
+        border-width: 1px;
+    }
+    
+    .modal-close:hover {
+        transform: scale(1.02);
+    }
+    
+    .modal-close:focus {
+        outline-width: 1px;
+        outline-offset: 1px;
+    }
+}
+
+@media (max-width: 360px) {
+    .modal-close {
+        top: 8px;
+        right: 8px;
+        min-width: 32px;
+        min-height: 32px;
+        padding: 5px;
+        font-size: 14px;
     }
 }

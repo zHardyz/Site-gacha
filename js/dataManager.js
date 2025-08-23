@@ -8,7 +8,8 @@ class DataManager {
             characterPool: 'gacha.character.pool.v3',
             poolTimestamp: 'gacha.character.pool.timestamp.v3',
             lastSummons: 'gacha.last.summons.v1',
-            favorites: 'gacha.favorites.v1' // Nova funcionalidade de favoritos
+            favorites: 'gacha.favorites.v1', // Nova funcionalidade de favoritos
+            collections: 'gacha.collections.v1' // Sistema de collections
         };
     }
 

@@ -12,68 +12,16 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/png" href="icone anime.png">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Botão de menu mobile -->
-    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Menu">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-    </button>
-
-    <!-- Navbar mobile (fora do header) -->
-    <nav class="nav-container" id="nav-container">
-        <a href="index.html" class="nav-link active">
-            <span class="nav-icon">⚡</span>
-            Invocar
-        </a>
-        <a href="stock.html" class="nav-link">
-            <span class="nav-icon">📦</span>
-            Coleção
-        </a>
-        <a href="buscar.html" class="nav-link">
-            <span class="nav-icon">🔍</span>
-            Buscar
-        </a>
-        <a href="favoritos.html" class="nav-link">
-            <span class="nav-icon">💖</span>
-            Favoritos
-        </a>
-        <a href="logs.html" class="nav-link">
-            <span class="nav-icon">📋</span>
-            Logs
-        </a>
-    </nav>
-
-    <header class="main-header">
-        <nav class="nav-container-desktop">
-            <a href="index.html" class="nav-link active">
-                <span class="nav-icon">⚡</span>
-                Invocar
-            </a>
-            <a href="stock.html" class="nav-link">
-                <span class="nav-icon">📦</span>
-                Coleção
-            </a>
-            <a href="buscar.html" class="nav-link">
-                <span class="nav-icon">🔍</span>
-                Buscar
-            </a>
-            <a href="favoritos.html" class="nav-link">
-                <span class="nav-icon">💖</span>
-                Favoritos
-            </a>
-            <a href="logs.html" class="nav-link">
-                <span class="nav-icon">📋</span>
-                Logs
-            </a>
-        </nav>
-    </header>
+    <!-- Include Navbar -->
+    <div id="navbar-container"></div>
     <div class="site-notice" id="site-notice">
-    <span>🚧 Site em desenvolvimento</span>
+    <span><img src="icone site.jpg" alt="Ícone" class="notice-icon"> agora você pode criar coleções personaliza.</span>
     <button class="close-notice" onclick="document.getElementById('site-notice').style.display='none'">×</button>
 </div>
 
@@ -167,46 +115,20 @@
     <script src="js/characterPool.js"></script>
     <script src="js/main.js"></script>
     <script src="js/spinSystem.js"></script>
+    <script src="js/navbar.js"></script>
     
     <script>
-        // Mobile Menu Toggle
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuToggle = document.getElementById('mobile-menu-toggle');
-            const navContainer = document.getElementById('nav-container');
-            
-            if (menuToggle && navContainer) {
-                menuToggle.addEventListener('click', () => {
-                    menuToggle.classList.toggle('active');
-                    navContainer.classList.toggle('active');
-                });
-                
-                // Fechar menu ao clicar em um link
-                const navLinks = navContainer.querySelectorAll('.nav-link');
-                navLinks.forEach(link => {
-                    link.addEventListener('click', () => {
-                        menuToggle.classList.remove('active');
-                        navContainer.classList.remove('active');
-                    });
-                });
-                
-                // Fechar menu ao clicar fora dele (mas não no summon button ou área do carrossel)
-                document.addEventListener('click', (e) => {
-                    const summonButton = document.getElementById('summon-button');
-                    const carouselContainer = document.getElementById('carousel-container');
-                    const summonArea = document.querySelector('.summon-area');
-                    
-                    // Não fechar se clicou no menu, summon button, carrossel ou área de summon
-                    if (!menuToggle.contains(e.target) && 
-                        !navContainer.contains(e.target) &&
-                        !summonButton?.contains(e.target) &&
-                        !carouselContainer?.contains(e.target) &&
-                        !summonArea?.contains(e.target)) {
-                        menuToggle.classList.remove('active');
-                        navContainer.classList.remove('active');
-                    }
-                });
-            }
-        });
+        // Load navbar
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('navbar-container').innerHTML = html;
+                // Initialize navbar after loading
+                if (window.Navbar) {
+                    new window.Navbar();
+                }
+            })
+            .catch(error => console.error('Error loading navbar:', error));
     </script>
 </body>
 </html>

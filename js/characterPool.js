@@ -83,7 +83,7 @@ class CharacterPoolManager {
                         description(asHtml: false)
                         media(sort: POPULARITY_DESC, perPage: 1) {
                             nodes {
-                                title { romaji }
+                                title { romaji english }
                                 popularity
                                 averageScore
                                 genres
@@ -252,13 +252,16 @@ class CharacterPoolManager {
                 }
                 
                 const rarity = this.determineRarity(char);
+                const animeTitle = char.media?.nodes?.[0]?.title;
+                const animeName = animeTitle?.english || animeTitle?.romaji || 'Unknown';
+                
                 const characterData = {
                     id: char.id,
                     name: char.name.full,
                     image: char.image.large,
                     rarity: rarity,
                     popularity: char.favourites || 0,
-                    anime: char.media?.nodes?.[0]?.title?.romaji || 'Unknown',
+                    anime: animeName,
                     score: char.media?.nodes?.[0]?.averageScore || 0,
                     lastSummoned: 0
                 };
@@ -303,7 +306,7 @@ class CharacterPoolManager {
                         description(asHtml: false)
                         media(sort: POPULARITY_DESC, perPage: 1) {
                             nodes {
-                                title { romaji }
+                                title { romaji english }
                                 popularity
                                 averageScore
                                 genres

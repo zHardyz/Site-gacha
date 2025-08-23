@@ -326,7 +326,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         carouselContainer.appendChild(carousel);
     }
 
+    // Variável para controlar se uma animação está em andamento
+    let isSpinning = false;
+    
+    // Sistema de limpeza de memória para animações
+    let activeAnimations = new Set();
+    
+    // Função para limpar animações antigas
+    function cleanupAnimations() {
+        activeAnimations.forEach(animation => {
+            if (animation && animation.kill) {
+                animation.kill();
+            }
+        });
+        activeAnimations.clear();
+    }
+
     function spinCarousel() {
+        // Prevenir múltiplos summons simultâneos
+        if (isSpinning) {
+            console.log("Summon em andamento, aguarde...");
+            return;
+        }
+        
         if (isInitializing) {
             console.log("Ainda inicializando banco de personagens...");
             return;
@@ -348,6 +370,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("Sem invocações restantes!");
             return;
         }
+
+        // Marcar como spinning para prevenir conflitos
+        isSpinning = true;
 
         // Tocar som de summon
         const summonSound = new Audio('audio/summon.mp3'); 
@@ -373,36 +398,117 @@ document.addEventListener('DOMContentLoaded', async () => {
         const cards = document.querySelectorAll('.carousel-card');
         const revealCard = cards[Math.floor(cards.length / 2)];
 
-        const tl = gsap.timeline();
-        tl.to(cards, {
-            x: () => `random(-200, 200)px`, // Valores em pixels mais controlados
-            y: () => `random(-150, 150)px`, // Valores em pixels mais controlados
-            rotation: () => `random(-360, 360)`,
-            duration: 1.5,
-            stagger: 0.02,
-            ease: 'power2.inOut',
-            onComplete: () => {
-                revealCharacter(winningCharacter, revealCard);
-                saveToStock(winningCharacter);
-                
-                        // Consumir o spin e atualizar UI
-        if (window.handleSpin) {
-            window.handleSpin();
-        }
+        // Limpar animações anteriores antes de iniciar nova
+        cleanupAnimations();
         
-        // Garantir que o menu mobile continue funcionando após o summon
-        preserveMobileMenu();
-                
-                // Verificar se ainda tem spins após este spin
-                if (window.canSpin && window.canSpin()) {
-                    summonButton.disabled = false;
-                } else {
-                    summonButton.disabled = true;
-                    summonButton.style.opacity = '0.5';
-                    summonButton.style.cursor = 'not-allowed';
-                    summonButton.textContent = 'Sem Invocações';
+        const tl = gsap.timeline();
+        activeAnimations.add(tl);
+        
+        // Primeiro, esconder todos os outros cards para que não interfiram
+        gsap.set(cards, { zIndex: 1 });
+        gsap.set(revealCard, { zIndex: 10 });
+        
+        // FASE 1: Card atual sai rapidamente para a direita
+        tl.to(revealCard, {
+            x: 400,
+            scale: 0.8,
+            opacity: 0,
+            duration: 0.3,
+            ease: 'power2.in'
+        })
+        // FASE 2: Configurar novo card vindo pela esquerda
+        .call(() => {
+            // Esconder todos os outros cards
+            cards.forEach((card, index) => {
+                if (card !== revealCard) {
+                    gsap.set(card, { 
+                        opacity: 0, 
+                        zIndex: 1,
+                        scale: 0.8,
+                        x: 0,
+                        y: 0,
+                        rotation: 0
+                    });
                 }
+            });
+            
+            // Configurar a imagem do personagem ANTES da animação de entrada
+            const img = new Image();
+            img.onload = () => {
+                // Configurar o card com a imagem do personagem
+                revealCard.innerHTML = `<img src="${winningCharacter.image}" alt="${winningCharacter.name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            };
+            
+            img.onerror = () => {
+                // Fallback para imagem de erro
+                revealCard.innerHTML = `<img src="https://via.placeholder.com/280x400/1a1a2e/a33bff?text=Sem+Imagem" alt="${winningCharacter.name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            };
+            
+            // Iniciar carregamento da imagem imediatamente
+            img.src = winningCharacter.image;
+            
+            // Configurar o card de revelação para vir pela esquerda
+            gsap.set(revealCard, { 
+                x: -400,
+                y: 0,
+                rotation: 0,
+                scale: 0.8,
+                opacity: 0,
+                zIndex: 100
+            });
+        })
+        // FASE 3: Novo card entra pela esquerda
+        .to(revealCard, {
+            x: 0,
+            scale: 1,
+            opacity: 1,
+            duration: 0.5,
+            ease: 'power2.out'
+        })
+        // FASE 4: Revelar o personagem no card
+        .call(() => {
+            revealCharacter(winningCharacter, revealCard);
+            saveToStock(winningCharacter);
+            
+            // Consumir o spin e atualizar UI
+            if (window.handleSpin) {
+                window.handleSpin();
             }
+            
+            // Garantir que o menu mobile continue funcionando após o summon
+            preserveMobileMenu();
+            
+            // Verificar se ainda tem spins após este spin
+            if (window.canSpin && window.canSpin()) {
+                summonButton.disabled = false;
+            } else {
+                summonButton.disabled = true;
+                summonButton.style.opacity = '0.5';
+                summonButton.style.cursor = 'not-allowed';
+                summonButton.textContent = 'Sem Invocações';
+            }
+            
+            // Limpar animação da lista ativa
+            activeAnimations.delete(tl);
+            
+            // Resetar flag de spinning após um pequeno delay
+            setTimeout(() => {
+                isSpinning = false;
+                
+                // Resetar todos os cards para o estado normal após a animação
+                cards.forEach((card, index) => {
+                    if (card !== revealCard) {
+                        gsap.set(card, { 
+                            opacity: 1, 
+                            zIndex: 1,
+                            scale: 1,
+                            x: 0,
+                            y: 0,
+                            rotation: 0
+                        });
+                    }
+                });
+            }, 500);
         });
     }
 
@@ -410,81 +516,81 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function revealCharacter(character, cardElement) {
         const rarityInfo = getRarityInfo(character.rarity);
-        const glowColor = rarityInfo.color; // Usar cor sólida para o glow principal
+        const glowColor = rarityInfo.color;
         
         // Tocar som de revelação no momento exato da revelação
         revealSound.currentTime = 0;
         revealSound.play().catch(err => console.log("Som de revelação bloqueado pelo navegador:", err));
         
-        // Primeiro, fazer a carta atual sair de visão (deslizar para a direita)
-        const tl = gsap.timeline();
+        // Parar qualquer animação anterior em andamento
+        gsap.killTweensOf(cardElement);
         
-        // Fase 1: Carta atual sai de visão
-        tl.to(cardElement, {
-            x: 280, // Deslizar para fora da tela pela direita
-            scale: 0.8,
-            opacity: 0,
-            duration: 0.4,
-            ease: 'power2.in'
-        })
-        // Fase 2: Configurar nova carta e fazer ela entrar
-        .call(() => {
-            // Configurar o card com a imagem do personagem
-            cardElement.innerHTML = `<img src="${character.image}" alt="${character.name}" onerror="this.src='https://via.placeholder.com/280x400/1a1a2e/a33bff?text=Sem+Imagem'">`;
-            
-            // Adicionar classe para animação CSS
-            cardElement.classList.add('revealing');
-            
-            // Configuração inicial - nova carta começa deslizada para a esquerda
-            gsap.set(cardElement, { 
-                x: -280, // Deslizar para fora da tela pela esquerda
-                y: 0, 
-                rotation: 0, // Sem rotação
-                scale: 0.8, 
-                opacity: 0,
-                zIndex: 100 
-            });
-        })
-        // Fase 3: Nova carta entra de visão
-        .to(cardElement, { 
-            x: 0, // Deslizar para o centro
-            scale: 1,
-            opacity: 1,
-            duration: 0.6, 
-            ease: 'power2.out' 
-        })
+        // Limpar classes de animação anteriores
+        cardElement.classList.remove('revealing');
+        
+        // Garantir que este card esteja sempre no topo
+        gsap.set(cardElement, { zIndex: 1000 });
+        
+        // A imagem já foi configurada na função spinCarousel, então não precisamos configurar novamente
+        
+        // Criar timeline com proteção contra conflitos
+        const tl = gsap.timeline({
+            onComplete: () => {
+                // Limpar estado final mas manter z-index alto
+                cardElement.classList.remove('revealing');
+                gsap.set(cardElement, { 
+                    clearProps: "x,scale,opacity,boxShadow",
+                    zIndex: 1000 // Manter sempre no topo
+                });
+                // Limpar animação da lista ativa
+                activeAnimations.delete(tl);
+            }
+        });
+        
+        activeAnimations.add(tl);
+        
         // Efeito de glow com a cor da raridade
-        .to(cardElement, {
+        tl.to(cardElement, {
             boxShadow: `0 0 30px 10px ${glowColor}70, 0 0 60px 25px ${glowColor}40, 0 0 90px 35px ${glowColor}20`,
-            duration: 0.6,
+            duration: 0.4,
             ease: 'power2.inOut',
             yoyo: true,
-            repeat: 2
-        }, "-=.3")
+            repeat: 1
+        })
         // Mostrar animação do nome
         .call(() => {
             showCharacterNameAnimation(character, rarityInfo, cardElement);
-        }, null, "-=1.0")
+        }, null, "-=0.8")
         // Remover classe de animação após completar
         .call(() => {
             cardElement.classList.remove('revealing');
         });
 
-        // Criar partículas de efeito
-        for (let i = 0; i < 30; i++) {
+        // Criar partículas de efeito (otimizado para performance)
+        const particleCount = window.innerWidth < 768 ? 8 : 15;
+        
+        for (let i = 0; i < particleCount; i++) {
             const particle = document.createElement('div');
             particle.className = 'particle';
             carouselContainer.appendChild(particle);
+            
+            // Usar valores fixos em vez de random para melhor performance
+            const angle = (i / particleCount) * Math.PI * 2;
+            const distance = 100 + (i % 3) * 30;
+            const x = Math.cos(angle) * distance;
+            const y = Math.sin(angle) * distance;
+            
             gsap.fromTo(particle, {
                 x: '50%',
                 y: '50%',
-                scale: `random(0.5, 1)`,
-                backgroundColor: rarityInfo.color
+                scale: 0.5 + (i % 3) * 0.2,
+                backgroundColor: rarityInfo.color,
+                zIndex: 999 // Abaixo do card mas acima de outros elementos
             }, {
-                x: `random(-150, 150)px`,
-                y: `random(-150, 150)px`,
+                x: x,
+                y: y,
                 opacity: 0,
-                duration: `random(1, 2)`,
+                duration: 0.8 + (i % 3) * 0.3,
                 ease: 'power2.out',
                 onComplete: () => particle.remove()
             });
@@ -653,6 +759,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     createCarousel();
     populateRarityChances();
     animateInfoPanel();
+    
+    // Limpeza automática de animações a cada 30 segundos
+    setInterval(cleanupAnimations, 30000);
 });
 
 // Sistema de som integrado - movido para dentro do evento principal

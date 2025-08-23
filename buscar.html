@@ -7,6 +7,7 @@
     <meta name="description" content="Busque personagens de anime e veja informações detalhadas">
     <link rel="icon" type="image/png" href="icone anime.png">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -299,7 +300,7 @@
 
                  /* Ajuste para o padding da página com navbar fixa */
          .search-page {
-             padding-top: 80px;
+             padding-top: 50px;
          }
 
                  @media (max-width: 768px) {
@@ -332,65 +333,132 @@
              .character-stats {
                  justify-content: center;
              }
+
+             .collection-selector {
+                 flex-direction: column;
+                 align-items: stretch;
+             }
+             
+             .add-to-collection-btn {
+                 width: 100%;
+                 justify-content: center;
+             }
          }
+
+        /* Estilos para a seção de Collections */
+        .collections-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .collections-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .collections-title::before {
+            content: "🗂️";
+            font-size: 1.1rem;
+        }
+
+        .collection-selector {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .collection-select {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .collection-select:focus {
+            outline: none;
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .collection-select option {
+            background: #1a1b23;
+            color: #ffffff;
+            padding: 0.5rem;
+        }
+
+        .add-to-collection-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .add-to-collection-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .add-to-collection-btn:active {
+            transform: translateY(0);
+        }
+
+        .add-to-collection-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .collection-status {
+            min-height: 1.5rem;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .collection-status.success {
+            color: #10b981;
+        }
+
+        .collection-status.error {
+            color: #ef4444;
+        }
+
+        .collection-status.info {
+            color: #6366f1;
+        }
+
+        .collection-status .status-icon {
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
-    <!-- Botão de menu mobile -->
-    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Menu">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-    </button>
-
-    <!-- Navbar mobile (fora do header) -->
-    <nav class="nav-container" id="nav-container">
-        <a href="index.html" class="nav-link">
-            <span class="nav-icon">⚡</span>
-            Invocar
-        </a>
-        <a href="stock.html" class="nav-link">
-            <span class="nav-icon">📦</span>
-            Coleção
-        </a>
-        <a href="buscar.html" class="nav-link active">
-            <span class="nav-icon">🔍</span>
-            Buscar
-        </a>
-        <a href="favoritos.html" class="nav-link">
-            <span class="nav-icon">💖</span>
-            Favoritos
-        </a>
-        <a href="logs.html" class="nav-link">
-            <span class="nav-icon">📋</span>
-            Logs
-        </a>
-    </nav>
-
-    <header class="main-header">
-        <nav class="nav-container-desktop">
-            <a href="index.html" class="nav-link">
-                <span class="nav-icon">⚡</span>
-                Invocar
-            </a>
-            <a href="stock.html" class="nav-link">
-                <span class="nav-icon">📦</span>
-                Coleção
-            </a>
-            <a href="buscar.html" class="nav-link active">
-                <span class="nav-icon">🔍</span>
-                Buscar
-            </a>
-            <a href="favoritos.html" class="nav-link">
-                <span class="nav-icon">💖</span>
-                Favoritos
-            </a>
-            <a href="logs.html" class="nav-link">
-                <span class="nav-icon">📋</span>
-                Logs
-            </a>
-        </nav>
-    </header>
+    <!-- Include Navbar -->
+    <div id="navbar-container"></div>
 
     <main class="search-page">
         <div class="search-container">
@@ -418,39 +486,23 @@
     </main>
 
          <script src="js/dataManager.js"></script>
+     <script src="js/collections-system.js"></script>
      <script src="js/bannerConfig.js"></script>
      <script src="js/characterSearch.js"></script>
+     <script src="js/navbar.js"></script>
      
      <script>
-         // Mobile Menu Toggle
-         document.addEventListener('DOMContentLoaded', () => {
-             const menuToggle = document.getElementById('mobile-menu-toggle');
-             const navContainer = document.getElementById('nav-container');
-             
-             if (menuToggle && navContainer) {
-                 menuToggle.addEventListener('click', () => {
-                     menuToggle.classList.toggle('active');
-                     navContainer.classList.toggle('active');
-                 });
-                 
-                 // Fechar menu ao clicar em um link
-                 const navLinks = navContainer.querySelectorAll('.nav-link');
-                 navLinks.forEach(link => {
-                     link.addEventListener('click', () => {
-                         menuToggle.classList.remove('active');
-                         navContainer.classList.remove('active');
-                     });
-                 });
-                 
-                 // Fechar menu ao clicar fora dele
-                 document.addEventListener('click', (e) => {
-                     if (!menuToggle.contains(e.target) && !navContainer.contains(e.target)) {
-                         menuToggle.classList.remove('active');
-                         navContainer.classList.remove('active');
-                     }
-                 });
-             }
-         });
+         // Load navbar
+         fetch('navbar.html')
+             .then(response => response.text())
+             .then(html => {
+                 document.getElementById('navbar-container').innerHTML = html;
+                 // Initialize navbar after loading
+                 if (window.Navbar) {
+                     new window.Navbar();
+                 }
+             })
+             .catch(error => console.error('Error loading navbar:', error));
      </script>
  </body>
  </html>
