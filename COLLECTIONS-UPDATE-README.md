@@ -192,3 +192,5 @@ this.CURRENT_VERSION = 'v2';
 **Versão:** v2
 **Status:** ✅ Implementado e Testado
 
+
+
